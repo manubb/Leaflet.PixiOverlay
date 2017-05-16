@@ -6,7 +6,8 @@ function Carte(opt) {
 	this.markers = [];
 	var mapContainer = document.getElementById(sel);
 	var map = this.map = L.map(mapContainer).setView(center, zoom);
-	L.tileLayer('http://tile.stamen.com/toner/{z}/{x}/{y}.png', {
+	L.tileLayer('//stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
+		subdomains: 'abcd',
 		attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
 		minZoom: 2,
 		maxZoom: 18
