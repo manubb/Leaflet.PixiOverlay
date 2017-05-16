@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html style="height: 100%; margin: 0;">
+<head>
+	<title>Leaflet.PixiOverlay canvas example</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="css/leaflet.css"/>
+	<script src="js/example.min.js"></script>
+	<script src="js/map.js"></script>
+	</head>
+<body style="height: 100%; margin: 0;">
+<div id="map" style="height: 100%; width: 100%;"></div>
+<script>
+	window.forceCanvas = true;
+	document.addEventListener("DOMContentLoaded", function() {
+		new Carte({
+			sel: 'map',
+			center: [46.953387, 2.892341],
+			zoom: 6
+		});
+	});
+</script>
+</body>
+</html>
