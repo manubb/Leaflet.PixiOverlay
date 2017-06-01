@@ -13,13 +13,22 @@
     "type": "git",
     "url": "https://github.com/manubb/Leaflet.PixiOverlay.git"
   },
+  "keywords": [
+    "leaflet",
+    "pixi.js",
+    "overlay"
+  ],
   "license": "MIT",
   "homepage": "https://github.com/manubb/Leaflet.PixiOverlay#readme",
   "peerDependencies": {
-    "leaflet": "^1.0.0"
+    "leaflet": "^1.0.0",
+    "pixi.js": "^4.5.1"
   },
   "devDependencies": {
-    "pixi.js": "^4.5.1",
+    "jshint": "^2.9.4",
     "uglify-js": "^3.0.6"
+  },
+  "bugs": {
+    "url": "https://github.com/manubb/Leaflet.PixiOverlay/issues"
   }
 }
