@@ -17,9 +17,9 @@ for drawing using WebGL that seamlessly falls back to HTML5's canvas if needed. 
 
 A very basic [demo](https://manubb.github.io/Leaflet.PixiOverlay/leaflet-quickstart.html).
 
-Largest US [cities](https://manubb.github.io/Leaflet.PixiOverlay/us-cities.html) (1000 markers).
+Largest [US cities](https://manubb.github.io/Leaflet.PixiOverlay/us-cities.html) (1000 markers).
 
-French [cities](https://manubb.github.io/Leaflet.PixiOverlay/french-cities.html) (36700 markers).
+[French cities](https://manubb.github.io/Leaflet.PixiOverlay/french-cities.html) (36700 markers).
 
 ## Basic usage
 
