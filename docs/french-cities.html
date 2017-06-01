@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html style="height: 100%; margin: 0;">
+<head>
+	<title>Leaflet.PixiOverlay: 36700 french cities</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<link rel="stylesheet" href="css/leaflet.css"/>
+	<link rel="stylesheet" href="css/carte.css"/>
+	<script src="js/example.min.js"></script>
+	<script src="js/tools.min.js"></script>
+</head>
+<body style="height: 100%; margin: 0; overflow: hidden;">
+<div id="map" style="height: 100%; width: 100%;" class="cartes">
+	<div class="legend geometry top center hide">
+		<div class="wrapper">
+			<div class="content"></div>
+		</div>
+	</div>
+</div>
+<script>
+	var getJSON = function(url, successHandler, errorHandler) {
+		var xhr = typeof XMLHttpRequest != 'undefined'
+			? new XMLHttpRequest()
+			: new ActiveXObject('Microsoft.XMLHTTP');
+		xhr.open('get', url, true);
+		xhr.onreadystatechange = function() {
+			var status;
+			var data;
+			// https://xhr.spec.whatwg.org/#dom-xmlhttprequest-readystate
+			if (xhr.readyState == 4) { // `DONE`
+				status = xhr.status;
+				if (status == 200) {
+					data = JSON.parse(xhr.responseText);
+					successHandler && successHandler(data);
+				} else {
+					errorHandler && errorHandler(status);
+				}
+			}
+		};
+		xhr.send();
+	};
+
+	var loader = new PIXI.loaders.Loader();
+	loader
+		.add('plane', 'img/plane.png')
+		.add('focusPlane', 'img/focus-plane.png')
+		.add('circle', 'img/circle.png')
+		.add('focusCircle', 'img/focus-circle.png')
+		.add('bicycle', 'img/bicycle.png')
+		.add('focusBicycle', 'img/focus-bicycle.png');
+	document.addEventListener("DOMContentLoaded", function() {
+		loader.load(function(loader, resources) {
+			var textures = [resources.plane.texture, resources.circle.texture, resources.bicycle.texture];
+			var focusTextures = [resources.focusPlane.texture, resources.focusCircle.texture, resources.focusBicycle.texture];
+			getJSON('data/communes.json', function(markers) {
+				var map = L.map('map').setView([46.953387, 2.892341], 6);
+				L.tileLayer('//stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
+					subdomains: 'abcd',
+					attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+					minZoom: 6,
+					maxZoom: 18
+				}).addTo(map);
+				map.attributionControl.setPosition('bottomleft');
+				map.zoomControl.setPosition('bottomright');
+				var legend = document.querySelector('div.legend.geometry');
+				var legendContent = legend.querySelector('.content');
+				var pixiLayer = (function() {
+					var init = false;
+					var prevZoom;
+					var markerSprites = [];
+					var colorScale = d3.scaleLinear()
+						.domain([0, 50, 100])
+						.range(["#c6233c", "#ffd300", "#008000"]);
+
+					var extent = [[Infinity, Infinity], [-Infinity, -Infinity]];
+					var lower = extent[0];
+					var upper = extent[1];
+
+					var frame = null;
+					var focus = null;
+					var pixiContainer = new PIXI.Container();
+					return L.pixiOverlay(function(utils) {
+						var zoom = utils.getZoom();
+						if (frame) {
+							cancelAnimationFrame(frame);
+							frame = null;
+						}
+						var container = utils.getContainer();
+						var renderer = utils.getRenderer();
+						var project = utils.latLngToLayerPoint;
+						var scale = utils.getScale();
+						var invScale = 1 / scale;
+						if (!init) {
+							prevZoom = zoom;
+							markers.forEach(function(marker) {
+								var coords = project([marker.latitude, marker.longitude]);
+								var index = Math.floor(Math.random() * textures.length);
+								var markerSprite = new PIXI.Sprite(textures[index]);
+								markerSprite.textureIndex = index;
+								markerSprite.x0 = coords.x;
+								markerSprite.y0 = coords.y;
+								lower[0] = Math.min(lower[0], markerSprite.x0);
+								upper[0] = Math.max(upper[0], markerSprite.x0);
+								lower[1] = Math.min(lower[1], markerSprite.y0);
+								upper[1] = Math.max(upper[1], markerSprite.y0);
+								markerSprite.anchor.set(0.5, 0.5);
+								var tint = d3.color(colorScale(marker.avancement || Math.random() * 100)).rgb();
+								markerSprite.tint = 256 * (tint.r * 256 + tint.g) + tint.b;
+								container.addChild(markerSprite);
+								markerSprites.push(markerSprite);
+								markerSprite.legend = marker.city || marker.label;
+							});
+							var quadTrees = {};
+							for (var z = map.getMinZoom(); z <= map.getMaxZoom(); z++) {
+								var rInit = ((z <= 7) ? 10 : 24) / utils.getScale(z);
+								quadTrees[z] = window.solveCollision(markerSprites, {r0: rInit, extent: extent, zoom: z});
+							}
+							map.on('click', function(e) {
+								var redraw = false;
+								if (focus) {
+									focus.texture = textures[focus.textureIndex];
+									focus = null;
+									L.DomUtil.addClass(legend, 'hide');
+									legendContent.innerHTML = '';
+									redraw = true;
+								}
+								var layerPoint = project(e.latlng);
+								var quadTree = quadTrees[utils.getZoom()];
+								var marker;
+								var rMax = quadTree.rMax;
+								var found = false;
+								quadTree.visit(function(quad, x1, y1, x2, y2) {
+									if (!quad.length) {
+										var dx = quad.data.x - layerPoint.x;
+										var dy = quad.data.y - layerPoint.y;
+										var r = quad.data.scale.x * 16;
+										if (dx * dx + dy * dy <= r * r) {
+											marker = quad.data;
+											found = true;
+										}
+									}
+									return found || x1 > layerPoint.x + rMax || x2 + rMax < layerPoint.x || y1 > layerPoint.y + rMax || y2 + rMax < layerPoint.y;
+								});
+								if (marker) {
+									marker.texture = focusTextures[marker.textureIndex];
+									focus = marker;
+									legendContent.innerHTML = marker.legend;
+									L.DomUtil.removeClass(legend, 'hide');
+									redraw = true;
+								}
+								if (redraw) utils.getRenderer().render(container);
+							});
+							map.on('mousemove', L.Util.throttle(function(e) {
+								var layerPoint = project(e.latlng);
+								var quadTree = quadTrees[utils.getZoom()];
+								var marker;
+								var rMax = quadTree.rMax;
+								var found = false;
+								quadTree.visit(function(quad, x1, y1, x2, y2) {
+									if (!quad.length) {
+										var dx = quad.data.x - layerPoint.x;
+										var dy = quad.data.y - layerPoint.y;
+										var r = quad.data.scale.x * 16;
+										if (dx * dx + dy * dy <= r * r) {
+											marker = quad.data;
+											found = true;
+										}
+									}
+									return found || x1 > layerPoint.x + rMax || x2 + rMax < layerPoint.x || y1 > layerPoint.y + rMax || y2 + rMax < layerPoint.y;
+								});
+								if (marker) {
+									L.DomUtil.addClass(utils.overlay._container, 'leaflet-interactive');
+								} else {
+									L.DomUtil.removeClass(utils.overlay._container, 'leaflet-interactive');
+								}
+							}, 32));
+						}
+						if (!init || prevZoom !== zoom) {
+							markerSprites.forEach(function(markerSprite) {
+								var position = markerSprite.cache[zoom];
+								if (!init) {
+									markerSprite.x = position.x;
+									markerSprite.y = position.y;
+									var lambda = (position.r * scale < 16) ? (position.r * scale) / 16 : 1;
+									markerSprite.scale.set(lambda * invScale);
+								} else {
+									markerSprite.currentX = markerSprite.x;
+									markerSprite.currentY = markerSprite.y;
+									markerSprite.targetX = position.x;
+									markerSprite.targetY = position.y;
+									markerSprite.currentScale = markerSprite.scale.x;
+									markerSprite.targetScale = (position.r * scale < 16) ? position.r / 16 : invScale;
+								}
+							});
+						}
+
+						var start = null;
+						var delta = 250;
+						function animate(timestamp) {
+							var progress;
+						  if (start === null) start = timestamp;
+						  progress = timestamp - start;
+						  var lambda = progress / delta;
+						  if (lambda > 1) lambda = 1;
+						  lambda = lambda * (0.4 + lambda * (2.2 + lambda * -1.6));
+						  markerSprites.forEach(function(markerSprite) {
+							  markerSprite.x = markerSprite.currentX + lambda * (markerSprite.targetX - markerSprite.currentX);
+							  markerSprite.y = markerSprite.currentY + lambda * (markerSprite.targetY - markerSprite.currentY);
+							  markerSprite.scale.set(markerSprite.currentScale + lambda * (markerSprite.targetScale - markerSprite.currentScale));
+							});
+							renderer.render(container);
+						  if (progress < delta) {
+						    frame = requestAnimationFrame(animate);
+						  }
+						}
+						if (init && prevZoom !== zoom) {
+							frame = requestAnimationFrame(animate);
+						}
+						init = true;
+						prevZoom = zoom;
+						renderer.render(container);
+					}, pixiContainer, {
+						padding: 0.2,
+						doubleBuffering: /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
+					});
+				})();
+
+				pixiLayer.addTo(map);
+			});
+		});
+	});
+</script>
+</body>
+</html>

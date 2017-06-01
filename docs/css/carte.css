@@ -1,0 +1,89 @@
+div.cartes .hide {
+	display:none !important;
+}
+
+div.cartes .legend {
+	z-index:100008;
+	position: absolute;
+	width:100%;
+	height:100%;
+	pointer-events:none;
+}
+div.cartes .legend .wrapper {
+	position:relative;
+	width:100%;
+	height:100%;
+}
+div.cartes .legend .wrapper:before {
+	content: '';
+	display: inline-block;
+	height:100%;
+	vertical-align:middle;
+}
+div.cartes .legend .content {
+	display:inline-block;
+	position:relative; /* needed by :before */
+	overflow:auto;
+	max-width:100%;
+	max-height:100%;
+	padding:1em;
+	text-align:left;
+	border-radius:0.5em;
+	cursor:auto;
+	pointer-events:auto;
+	font-size: x-large;
+	font-weight: 800;
+}
+div.cartes .legend .content:before {
+	content:'';
+	position:absolute;
+	left:0;
+	right:0;
+	top:0;
+	bottom:0;
+	background:white;
+	opacity:0.9;
+	z-index:-1;
+}
+div.cartes .legend .content p {
+	margin:0;
+}
+div.cartes .legend .content a {
+	color:inherit;
+}
+
+div.cartes .legend.top .content {
+	vertical-align:top;
+}
+div.cartes .legend.bottom .content {
+	vertical-align:bottom;
+}
+div.cartes .legend.middle .content {
+	vertical-align:middle;
+}
+div.cartes .legend.left .wrapper {
+	text-align:left;
+}
+div.cartes .legend.right .wrapper {
+	text-align:right;
+}
+div.cartes .legend.center .wrapper {
+	text-align:center;
+}
+
+div.cartes .legend.top .content {
+	border-top-left-radius:0;
+	border-top-right-radius:0;
+}
+div.cartes .legend.bottom .content {
+	border-bottom-left-radius:0;
+	border-bottom-right-radius:0;
+}
+div.cartes .legend.left .content {
+	border-top-left-radius:0;
+	border-bottom-left-radius:0;
+}
+div.cartes .legend.right .content {
+	border-top-right-radius:0;
+	border-bottom-right-radius:0;
+}
