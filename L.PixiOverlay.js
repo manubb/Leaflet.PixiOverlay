@@ -74,7 +74,7 @@
 
 			var map = this._map;
 			//some choices in next two lines
-			this._initialZoom = Math.floor((map.getMinZoom() + map.getMaxZoom())/2);
+			this._initialZoom = ((map.getMinZoom() + map.getMaxZoom())/2);
 			this._wgsOrigin = L.latLng([0, 0]);
 			this._disableLeafletRounding();
 			this._wgsInitialShift = map.project(this._wgsOrigin, this._initialZoom);
@@ -96,7 +96,7 @@
 				},
 				getScale: function(zoom) {
 					if (zoom === undefined) return _layer._scale;
-					else return map.getZoomScale(zoom, this._initialZoom);
+					else return map.getZoomScale(zoom, _layer._initialZoom);
 				},
 				getRenderer: function() {
 					return _layer._renderer;
@@ -104,9 +104,9 @@
 				getContainer: function() {
 					return _layer._pixiContainer;
 				},
-				getZoom: map.getZoom.bind(this._map)
+				getZoom: map.getZoom.bind(this._map),
+				overlay: _layer
 			};
-
 			this._update();
 		},
 
