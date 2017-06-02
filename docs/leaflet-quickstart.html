@@ -83,7 +83,7 @@
 						cancelAnimationFrame(frame);
 						frame = null;
 					}
-					var zoom = utils.getZoom();
+					var zoom = utils.getMap().getZoom();
 					var container = utils.getContainer();
 					var renderer = utils.getRenderer();
 					var project = utils.latLngToLayerPoint;
@@ -110,8 +110,8 @@
 						triangle.lineStyle(3 / scale, 0x3388ff, 1);
 						triangle.beginFill(0x3388ff, 0.2);
 						projectedPolygon.forEach(function(coords, index) {
-							if (index == 0) triangle.moveTo(coords.x,coords.y);
-							else triangle.lineTo(coords.x,coords.y);
+							if (index == 0) triangle.moveTo(coords.x, coords.y);
+							else triangle.lineTo(coords.x, coords.y);
 						});
 						triangle.endFill();
 

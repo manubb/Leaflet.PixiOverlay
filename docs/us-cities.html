@@ -75,7 +75,7 @@
 					var focus = null;
 					var pixiContainer = new PIXI.Container();
 					return L.pixiOverlay(function(utils) {
-						var zoom = utils.getZoom();
+						var zoom = utils.getMap().getZoom();
 						if (frame) {
 							cancelAnimationFrame(frame);
 							frame = null;
@@ -108,7 +108,7 @@
 							}
 							function findMarker(ll) {
 								var layerPoint = project(ll);
-								var quadTree = quadTrees[utils.getZoom()];
+								var quadTree = quadTrees[utils.getMap().getZoom()];
 								var marker;
 								var rMax = quadTree.rMax;
 								var found = false;
