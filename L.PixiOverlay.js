@@ -104,8 +104,9 @@
 				getContainer: function() {
 					return _layer._pixiContainer;
 				},
-				getZoom: map.getZoom.bind(this._map),
-				overlay: _layer
+				getMap: function() {
+					return _layer._map;
+				}
 			};
 			this._update();
 		},
