@@ -26,8 +26,7 @@
 		xhr.onreadystatechange = function() {
 			var status;
 			var data;
-			// https://xhr.spec.whatwg.org/#dom-xmlhttprequest-readystate
-			if (xhr.readyState == 4) { // `DONE`
+			if (xhr.readyState == 4) {
 				status = xhr.status;
 				if (status == 200) {
 					data = JSON.parse(xhr.responseText);
@@ -65,16 +64,12 @@
 				var legend = document.querySelector('div.legend.geometry');
 				var legendContent = legend.querySelector('.content');
 				var pixiLayer = (function() {
-					var init = false;
+					var firstDraw = true;
 					var prevZoom;
 					var markerSprites = [];
 					var colorScale = d3.scaleLinear()
 						.domain([0, 50, 100])
 						.range(["#c6233c", "#ffd300", "#008000"]);
-
-					var extent = [[Infinity, Infinity], [-Infinity, -Infinity]];
-					var lower = extent[0];
-					var upper = extent[1];
 
 					var frame = null;
 					var focus = null;
@@ -90,7 +85,7 @@
 						var project = utils.latLngToLayerPoint;
 						var scale = utils.getScale();
 						var invScale = 1 / scale;
-						if (!init) {
+						if (firstDraw) {
 							prevZoom = zoom;
 							markers.forEach(function(marker) {
 								var coords = project([marker.latitude, marker.longitude]);
@@ -99,10 +94,6 @@
 								markerSprite.textureIndex = index;
 								markerSprite.x0 = coords.x;
 								markerSprite.y0 = coords.y;
-								lower[0] = Math.min(lower[0], markerSprite.x0);
-								upper[0] = Math.max(upper[0], markerSprite.x0);
-								lower[1] = Math.min(lower[1], markerSprite.y0);
-								upper[1] = Math.max(upper[1], markerSprite.y0);
 								markerSprite.anchor.set(0.5, 0.5);
 								var tint = d3.color(colorScale(marker.avancement || Math.random() * 100)).rgb();
 								markerSprite.tint = 256 * (tint.r * 256 + tint.g) + tint.b;
@@ -113,7 +104,27 @@
 							var quadTrees = {};
 							for (var z = map.getMinZoom(); z <= map.getMaxZoom(); z++) {
 								var rInit = ((z <= 7) ? 10 : 24) / utils.getScale(z);
-								quadTrees[z] = window.solveCollision(markerSprites, {r0: rInit, extent: extent, zoom: z});
+								quadTrees[z] = window.solveCollision(markerSprites, {r0: rInit, zoom: z});
+							}
+							function findMarker(ll) {
+								var layerPoint = project(ll);
+								var quadTree = quadTrees[utils.getZoom()];
+								var marker;
+								var rMax = quadTree.rMax;
+								var found = false;
+								quadTree.visit(function(quad, x1, y1, x2, y2) {
+									if (!quad.length) {
+										var dx = quad.data.x - layerPoint.x;
+										var dy = quad.data.y - layerPoint.y;
+										var r = quad.data.scale.x * 16;
+										if (dx * dx + dy * dy <= r * r) {
+											marker = quad.data;
+											found = true;
+										}
+									}
+									return found || x1 > layerPoint.x + rMax || x2 + rMax < layerPoint.x || y1 > layerPoint.y + rMax || y2 + rMax < layerPoint.y;
+								});
+								return marker;
 							}
 							map.on('click', function(e) {
 								var redraw = false;
@@ -124,23 +135,7 @@
 									legendContent.innerHTML = '';
 									redraw = true;
 								}
-								var layerPoint = project(e.latlng);
-								var quadTree = quadTrees[utils.getZoom()];
-								var marker;
-								var rMax = quadTree.rMax;
-								var found = false;
-								quadTree.visit(function(quad, x1, y1, x2, y2) {
-									if (!quad.length) {
-										var dx = quad.data.x - layerPoint.x;
-										var dy = quad.data.y - layerPoint.y;
-										var r = quad.data.scale.x * 16;
-										if (dx * dx + dy * dy <= r * r) {
-											marker = quad.data;
-											found = true;
-										}
-									}
-									return found || x1 > layerPoint.x + rMax || x2 + rMax < layerPoint.x || y1 > layerPoint.y + rMax || y2 + rMax < layerPoint.y;
-								});
+								var marker = findMarker(e.latlng);
 								if (marker) {
 									marker.texture = focusTextures[marker.textureIndex];
 									focus = marker;
@@ -151,23 +146,7 @@
 								if (redraw) utils.getRenderer().render(container);
 							});
 							map.on('mousemove', L.Util.throttle(function(e) {
-								var layerPoint = project(e.latlng);
-								var quadTree = quadTrees[utils.getZoom()];
-								var marker;
-								var rMax = quadTree.rMax;
-								var found = false;
-								quadTree.visit(function(quad, x1, y1, x2, y2) {
-									if (!quad.length) {
-										var dx = quad.data.x - layerPoint.x;
-										var dy = quad.data.y - layerPoint.y;
-										var r = quad.data.scale.x * 16;
-										if (dx * dx + dy * dy <= r * r) {
-											marker = quad.data;
-											found = true;
-										}
-									}
-									return found || x1 > layerPoint.x + rMax || x2 + rMax < layerPoint.x || y1 > layerPoint.y + rMax || y2 + rMax < layerPoint.y;
-								});
+								var marker = findMarker(e.latlng);
 								if (marker) {
 									L.DomUtil.addClass(utils.overlay._container, 'leaflet-interactive');
 								} else {
@@ -175,14 +154,13 @@
 								}
 							}, 32));
 						}
-						if (!init || prevZoom !== zoom) {
+						if (firstDraw || prevZoom !== zoom) {
 							markerSprites.forEach(function(markerSprite) {
 								var position = markerSprite.cache[zoom];
-								if (!init) {
+								if (firstDraw) {
 									markerSprite.x = position.x;
 									markerSprite.y = position.y;
-									var lambda = (position.r * scale < 16) ? (position.r * scale) / 16 : 1;
-									markerSprite.scale.set(lambda * invScale);
+									markerSprite.scale.set((position.r * scale < 16) ? position.r / 16 : invScale);
 								} else {
 									markerSprite.currentX = markerSprite.x;
 									markerSprite.currentY = markerSprite.y;
@@ -213,10 +191,10 @@
 						    frame = requestAnimationFrame(animate);
 						  }
 						}
-						if (init && prevZoom !== zoom) {
+						if (!firstDraw && prevZoom !== zoom) {
 							frame = requestAnimationFrame(animate);
 						}
-						init = true;
+						firstDraw = false;
 						prevZoom = zoom;
 						renderer.render(container);
 					}, pixiContainer, {

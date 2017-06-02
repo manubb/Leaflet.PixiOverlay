@@ -31,14 +31,16 @@
 			map.zoomControl.setPosition('bottomright');
 			var pixiOverlay = (function() {
 				var frame = null;
-				var init = false;
+				var firstDraw = true;
 				var prevZoom;
+
 				var markerLatLng = [51.5, -0.09];
 				var marker = new PIXI.Sprite(markerTexture);
 				marker.popup = L.popup({className: 'pixi-popup'})
 					.setLatLng(markerLatLng)
 					.setContent('<b>Hello world!</b><br>I am a popup.')
 					.openOn(map);
+
 				var polygonLatLngs = [
 					[51.509, -0.08],
 					[51.503, -0.06],
@@ -50,6 +52,7 @@
 				var circleCenter = [51.508, -0.11];
 				var projectedCenter;
 				var circleRadius = 85;
+
 				var triangle = new PIXI.Graphics();
 				triangle.popup = L.popup()
 					.setLatLng([51.5095, -0.063])
@@ -58,14 +61,13 @@
 				circle.popup = L.popup()
 					.setLatLng(circleCenter)
 					.setContent('I am a circle.');
+
 				[marker, triangle, circle].forEach(function(geo) {
-					// geo.buttonMode = true;
 					geo.interactive = true;
-					// geo.on('click', function(e) {
-					// 	if (geo.popup) setTimeout(function() {geo.popup.openOn(map)});
-					// });
 				});
+
 				var pixiContainer = new PIXI.Container();
+				pixiContainer.addChild(marker, triangle, circle);
 				pixiContainer.interactive = true;
 				pixiContainer.interactiveChildren = true;
 				pixiContainer.buttonMode = true;
@@ -74,8 +76,8 @@
 					if (target && target.popup) {
 						setTimeout(function() {target.popup.openOn(map);});
 					}
-					// console.log(e.currentTarget, e.target, e.data, e.type, e.stopped);
 				});
+
 				return L.pixiOverlay(function(utils) {
 					if (frame) {
 						cancelAnimationFrame(frame);
@@ -87,25 +89,23 @@
 					var project = utils.latLngToLayerPoint;
 					var scale = utils.getScale();
 
-					if (!init) {
+					if (firstDraw) {
 						var markerCoords = project(markerLatLng);
 						marker.x = markerCoords.x;
 						marker.y = markerCoords.y;
 						marker.anchor.set(0.5, 1);
 						marker.scale.set(1 / scale);
 						marker.currentScale = 1 / scale;
-						container.addChild(marker);
 
 						projectedPolygon = polygonLatLngs.map(function(coords) {return project(coords);});
-						container.addChild(triangle);
 
 						projectedCenter = project(circleCenter);
 						circleRadius = circleRadius / scale;
-						container.addChild(circle);
 					}
-					if (!init || prevZoom !== zoom) {
+					if (firstDraw || prevZoom !== zoom) {
 						marker.currentScale = marker.scale.x;
 						marker.targetScale = 1 / scale;
+
 						triangle.clear();
 						triangle.lineStyle(3 / scale, 0x3388ff, 1);
 						triangle.beginFill(0x3388ff, 0.2);
@@ -114,6 +114,7 @@
 							else triangle.lineTo(coords.x,coords.y);
 						});
 						triangle.endFill();
+
 						circle.clear();
 						circle.lineStyle(3 / scale, 0xff0000, 1);
 						circle.beginFill(0xff0033, 0.5);
@@ -121,26 +122,28 @@
 						circle.endFill();
 					}
 
-					var start = null;
-					var delta = 100;
+					var duration = 100;
+					var start;
 					function animate(timestamp) {
 						var progress;
 					  if (start === null) start = timestamp;
 					  progress = timestamp - start;
-					  var lambda = progress / delta;
+					  var lambda = progress / duration;
 					  if (lambda > 1) lambda = 1;
 					  lambda = lambda * (0.4 + lambda * (2.2 + lambda * -1.6));
 					  marker.scale.set(marker.currentScale + lambda * (marker.targetScale - marker.currentScale));
 						renderer.render(container);
-					  if (progress < delta) {
+					  if (progress < duration) {
 					    frame = requestAnimationFrame(animate);
 					  }
 					}
-					if (init && prevZoom !== zoom) {
+
+					if (!firstDraw && prevZoom !== zoom) {
+						start = null;
 						frame = requestAnimationFrame(animate);
 					}
 
-					init = true;
+					firstDraw = false;
 					prevZoom = zoom;
 					renderer.render(container);
 				}, pixiContainer, {
