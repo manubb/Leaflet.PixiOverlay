@@ -145,12 +145,13 @@
 								}
 								if (redraw) utils.getRenderer().render(container);
 							});
+							var self = this;
 							map.on('mousemove', L.Util.throttle(function(e) {
 								var marker = findMarker(e.latlng);
 								if (marker) {
-									L.DomUtil.addClass(utils.overlay._container, 'leaflet-interactive');
+									L.DomUtil.addClass(self._container, 'leaflet-interactive');
 								} else {
-									L.DomUtil.removeClass(utils.overlay._container, 'leaflet-interactive');
+									L.DomUtil.removeClass(self._container, 'leaflet-interactive');
 								}
 							}, 32));
 						}
