@@ -21,9 +21,112 @@ Largest [US cities](https://manubb.github.io/Leaflet.PixiOverlay/us-cities.html)
 
 [French cities](https://manubb.github.io/Leaflet.PixiOverlay/french-cities.html) (36700 markers).
 
-## Basic usage
+## Usage
 
-Todo
+Include Pixi.js and the PixiOverlay libraries:
+
+```js
+    <script src="pixi.min.js"></script>
+    <script src="L.PixiOverlay.min.js"></script>
+```
+Create a map:
+
+```js
+    var map = L.map(...);
+```
+
+Create an overlay:
+
+```js
+    var pixiOverlay = L.pixiOverlay(function(utils) {
+        // your drawing code here
+    }, new PIXI.Container());
+```
+
+Add it to the map:
+
+```js
+    pixiOverlay.addTo(map);
+```
+## Examples
+
+### Draw a marker
+```js
+var loader = new PIXI.loaders.Loader();
+loader.add('marker', 'img/marker-icon.png');
+loader.load(function(loader, resources) {
+    var markerTexture = resources.marker.texture;
+    var markerLatLng = [51.5, -0.09];
+    var marker = new PIXI.Sprite(markerTexture);
+    marker.anchor.set(0.5, 1);
+
+    var pixiContainer = new PIXI.Container();
+    pixiContainer.addChild(marker);
+
+    var firstDraw = true;
+
+    var pixiOverlay = L.pixiOverlay(function(utils) {
+        var container = utils.getContainer();
+        var renderer = utils.getRenderer();
+        var project = utils.latLngToLayerPoint;
+        var scale = utils.getScale();
+
+        if (firstDraw) {
+            var markerCoords = project(markerLatLng);
+            marker.x = markerCoords.x;
+            marker.y = markerCoords.y;
+            firstDraw = false;
+        }
+
+        marker.scale.set(1 / scale);
+        renderer.render(container);
+    }, pixiContainer);
+    pixiOverlay.addTo(map);
+});
+```
+### Draw a triangle
+```js
+var firstDraw = true;
+var prevZoom;
+
+var polygonLatLngs = [
+    [51.509, -0.08],
+    [51.503, -0.06],
+    [51.51, -0.047],
+    [51.509, -0.08]
+];
+var projectedPolygon;
+var triangle = new PIXI.Graphics();
+
+var pixiContainer = new PIXI.Container();
+pixiContainer.addChild(triangle);
+
+var pixiOverlay = L.pixiOverlay(function(utils) {
+    var zoom = utils.getMap().getZoom();
+    var container = utils.getContainer();
+    var renderer = utils.getRenderer();
+    var project = utils.latLngToLayerPoint;
+    var scale = utils.getScale();
+
+    if (firstDraw) {
+        projectedPolygon = polygonLatLngs.map(function(coords) {return project(coords);});
+    }
+    if (firstDraw || prevZoom !== zoom) {
+        triangle.clear();
+        triangle.lineStyle(3 / scale, 0x3388ff, 1);
+        triangle.beginFill(0x3388ff, 0.2);
+        projectedPolygon.forEach(function(coords, index) {
+            if (index == 0) triangle.moveTo(coords.x, coords.y);
+            else triangle.lineTo(coords.x, coords.y);
+        });
+        triangle.endFill();
+    }
+    firstDraw = false;
+    prevZoom = zoom;
+    renderer.render(container);
+}, pixiContainer);
+pixiOverlay.addTo(map);
+```
 
 ## API
 
@@ -59,7 +162,7 @@ available methods:
  * `getScale(zoom?)`  - (function) return the current scale factor of the overlay or the scale factor associated to zoom value.
  * `getRenderer()` - (function) return the current PIXI renderer.
  * `getContainer()` - (function) return the PIXI container used in the overlay.
- * `getZoom()` - (function) return the current zoom value.
+ * `getMap()` - (function) return the current map.
 
 ## License
 
