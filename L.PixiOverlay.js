@@ -74,7 +74,7 @@
 
 			var map = this._map;
 			//some choices in next two lines
-			this._initialZoom = ((map.getMinZoom() + map.getMaxZoom())/2);
+			this._initialZoom = (map.getMinZoom() + map.getMaxZoom()) / 2;
 			this._wgsOrigin = L.latLng([0, 0]);
 			this._disableLeafletRounding();
 			this._wgsInitialShift = map.project(this._wgsOrigin, this._initialZoom);
