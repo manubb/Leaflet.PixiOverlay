@@ -5,6 +5,8 @@ An overlay class for [Leaflet](http://leafletjs.com), a JS
 library for interactive maps.  Allows drawing overlay using [Pixi.js](http://www.pixijs.com/), a JavaScript library
 for drawing using WebGL that seamlessly falls back to HTML5's canvas if needed. Thanks to [Leaflet.D3SvgOverlay](https://github.com/teralytics/Leaflet.D3SvgOverlay) for inspiration.
 
+![screenshot](/docs/img/Leaflet.PixiOverlay.png)
+
 ## Features
 
  * No limitations to polylines, circles or geoJSON. Draw whatever you want with Pixi.js
