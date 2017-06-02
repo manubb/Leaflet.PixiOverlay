@@ -64,8 +64,10 @@ loader.load(function(loader, resources) {
     pixiContainer.addChild(marker);
 
     var firstDraw = true;
+    var prevZoom;
 
     var pixiOverlay = L.pixiOverlay(function(utils) {
+        var zoom = utils.getMap().getZoom();
         var container = utils.getContainer();
         var renderer = utils.getRenderer();
         var project = utils.latLngToLayerPoint;
@@ -75,10 +77,14 @@ loader.load(function(loader, resources) {
             var markerCoords = project(markerLatLng);
             marker.x = markerCoords.x;
             marker.y = markerCoords.y;
-            firstDraw = false;
         }
 
-        marker.scale.set(1 / scale);
+        if (firstDraw || prevZoom !== zoom) {
+            marker.scale.set(1 / scale);
+        }
+
+        firstDraw = false;
+        prevZoom = zoom;
         renderer.render(container);
     }, pixiContainer);
     pixiOverlay.addTo(map);
@@ -86,9 +92,6 @@ loader.load(function(loader, resources) {
 ```
 ### Draw a triangle
 ```js
-var firstDraw = true;
-var prevZoom;
-
 var polygonLatLngs = [
     [51.509, -0.08],
     [51.503, -0.06],
@@ -100,6 +103,9 @@ var triangle = new PIXI.Graphics();
 
 var pixiContainer = new PIXI.Container();
 pixiContainer.addChild(triangle);
+
+var firstDraw = true;
+var prevZoom;
 
 var pixiOverlay = L.pixiOverlay(function(utils) {
     var zoom = utils.getMap().getZoom();
