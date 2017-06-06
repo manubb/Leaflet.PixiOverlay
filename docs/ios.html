@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html style="height: 100%; margin: 0;">
+<head>
+	<title>iOS WebGL</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css"/>
+	<script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.5.2/pixi.min.js"></script>
+	<script src="https://cdn.rawgit.com/manubb/Leaflet.PixiOverlay/557caec7/L.PixiOverlay.js"></script>
+</head>
+<body style="height: 100%; margin: 0;">
+<div id="map" style="height: 100%; width: 100%;"></div>
+<script>
+	(function() {
+		document.addEventListener("DOMContentLoaded", function() {
+			var map = L.map('map').setView([51.505, -0.09], 13);
+			var a = 1;
+			function pan() {
+				map.panBy([0, a * 200]);
+				a *= -1;
+			}
+			setInterval(pan, 700);
+			L.tileLayer('//stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
+				subdomains: 'abcd',
+				attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+				minZoom: 2,
+				maxZoom: 18
+			}).addTo(map);
+			map.attributionControl.setPosition('bottomleft');
+			map.zoomControl.setPosition('bottomright');
+			var pixiOverlay = (function() {
+				var firstDraw = true;
+				var prevZoom;
+				var polygonLatLngs = [
+					[51.509, -0.08],
+					[51.503, -0.06],
+					[51.51, -0.047],
+					[51.509, -0.08]
+				];
+				var projectedPolygon;
+
+				var circleCenter = [51.508, -0.11];
+				var projectedCenter;
+				var circleRadius = 85;
+
+				var triangle = new PIXI.Graphics();
+				var circle = new PIXI.Graphics();
+
+				var pixiContainer = new PIXI.Container();
+				pixiContainer.addChild(triangle, circle);
+
+				return L.pixiOverlay(function(utils) {
+					var zoom = utils.getMap().getZoom();
+					var container = utils.getContainer();
+					var renderer = utils.getRenderer();
+					var project = utils.latLngToLayerPoint;
+					var scale = utils.getScale();
+
+					if (firstDraw) {
+						projectedPolygon = polygonLatLngs.map(function(coords) {return project(coords);});
+
+						projectedCenter = project(circleCenter);
+						circleRadius = circleRadius / scale;
+					}
+					if (firstDraw || prevZoom !== zoom) {
+						triangle.clear();
+						triangle.lineStyle(3 / scale, 0x3388ff, 1);
+						triangle.beginFill(0x3388ff, 0.2);
+						projectedPolygon.forEach(function(coords, index) {
+							if (index == 0) triangle.moveTo(coords.x, coords.y);
+							else triangle.lineTo(coords.x, coords.y);
+						});
+						triangle.endFill();
+
+						circle.clear();
+						circle.lineStyle(3 / scale, 0xff0000, 1);
+						circle.beginFill(0xff0033, 0.5);
+						circle.drawCircle(projectedCenter.x, projectedCenter.y, circleRadius);
+						circle.endFill();
+					}
+
+					firstDraw = false;
+					prevZoom = zoom;
+					renderer.render(container);
+				}, pixiContainer, {
+					padding: 0.2,
+					forceCanvas: false
+				});
+			})();
+			pixiOverlay.addTo(map);
+		});
+	})();
+</script>
+</body>
+</html>
