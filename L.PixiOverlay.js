@@ -60,7 +60,7 @@
 				this._renderer = PIXI.autoDetectRenderer(this._rendererOptions);
 				container.appendChild(this._renderer.view);
 				if (this._zoomAnimated) {
-					L.DomUtil.addClass(container, 'leaflet-image-layer');
+					// L.DomUtil.addClass(container, 'leaflet-image-layer');
 					L.DomUtil.addClass(container, 'leaflet-zoom-animated');
 				}
 
