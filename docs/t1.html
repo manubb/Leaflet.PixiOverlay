@@ -17,6 +17,7 @@
 		</div>
 	</div>
 </div>
+<img id="webgl" src="img/WebGL_Logo.png" style="position: absolute; top: 20px; left: 20px; height: 50px; z-index: 600; pointer-events: none; display: none;" >
 <script>
 	var getJSON = function(url, successHandler, errorHandler) {
 		var xhr = typeof XMLHttpRequest != 'undefined'
@@ -84,6 +85,11 @@
 					var scale = utils.getScale();
 					var invScale = 1 / scale;
 					if (firstDraw) {
+						if (renderer.type === PIXI.RENDERER_TYPE.WEBGL) {
+							document.querySelector('#webgl').style.display = 'block';
+						} else {
+							document.body.removeChild(document.querySelector('#webgl'));
+						}
 						prevZoom = zoom;
 						container.lineStyle(2 / utils.getScale(12), 0x777777, 0.8);
 						geojson.features.forEach(function(feature) {
