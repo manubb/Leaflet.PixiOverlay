@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html style="height: 100%; margin: 0;">
+<head>
+	<title>Leaflet.PixiOverlay: 2017 French presidential election, second round</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<link rel="stylesheet" href="css/leaflet.css"/>
+	<link rel="stylesheet" href="css/carte.css"/>
+	<script src="js/example.min.js"></script>
+	<script src="js/tools.min.js"></script>
+</head>
+<body style="height: 100%; margin: 0; overflow: hidden;">
+<div id="map" style="height: 100%; width: 100%;" class="cartes">
+	<div class="legend geometry top center hide">
+		<div class="wrapper">
+			<div class="content"></div>
+		</div>
+	</div>
+</div>
+<script>
+	var getJSON = function(url, successHandler, errorHandler) {
+		var xhr = typeof XMLHttpRequest != 'undefined'
+			? new XMLHttpRequest()
+			: new ActiveXObject('Microsoft.XMLHTTP');
+		xhr.open('get', url, true);
+		xhr.onreadystatechange = function() {
+			var status;
+			var data;
+			if (xhr.readyState == 4) {
+				status = xhr.status;
+				if (status == 200) {
+					data = JSON.parse(xhr.responseText);
+					successHandler && successHandler(data);
+				} else {
+					errorHandler && errorHandler(status);
+				}
+			}
+		};
+		xhr.send();
+	};
+
+	document.addEventListener("DOMContentLoaded", function() {
+		getJSON('data/tour2.topojson', function(topo) {
+			var geojson = topojson.feature(topo, topo.objects.tour2);
+			var map = L.map('map').setView([46.953387, 2.892341], 6);
+			L.tileLayer('//stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
+				subdomains: 'abcd',
+				attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+				minZoom: 2,
+				maxZoom: 12
+			}).addTo(map);
+			map.attributionControl.setPosition('bottomleft');
+			map.zoomControl.setPosition('bottomright');
+			var legend = document.querySelector('div.legend.geometry');
+			var legendContent = legend.querySelector('.content');
+			var pixiLayer = (function() {
+				var firstDraw = true;
+				var prevZoom;
+				var cities = [];
+				var colorScale = d3.scaleLinear()
+					.domain([0, 50, 100])
+					.range(["#c6233c", "#ffd300", "#008000"]);
+
+				var focus = null;
+				var pixiContainer = new PIXI.Graphics();
+				pixiContainer.alpha = 0.8;
+				var colorScaleTour2 = d3.scaleLinear()
+						.domain([0, 0.48, 0.52, 1])
+						.range(["#000000", "#83726D", "#FFD75C", "#ffee00"]);
+
+				return L.pixiOverlay(function(utils) {
+					var zoom = utils.getMap().getZoom();
+					var container = utils.getContainer();
+					var renderer = utils.getRenderer();
+					var project = utils.latLngToLayerPoint;
+					var scale = utils.getScale();
+					var invScale = 1 / scale;
+					if (firstDraw) {
+						prevZoom = zoom;
+						container.lineStyle(2 / utils.getScale(12), 0x777777, 0.8);
+						geojson.features.forEach(function(feature) {
+							var color;
+							function drawPoly(poly) {
+								if (poly.length > 1) console.log('holes:', poly.length - 1);
+								if (poly.length === 1) {
+									var coords = poly[0].map(function(point) {
+										var proj = project([point[1], point[0]]);
+										return new PIXI.Point(proj.x, proj.y)
+									});
+									var shape = new PIXI.Polygon(coords);
+									shape.close();
+									cities.push(shape);
+									container.beginFill(color);
+									container.drawShape(shape);
+								} else {
+									var drawing = new PIXI.Graphics();
+									drawing.lineStyle(2 / utils.getScale(12), 0x777777, 0.8);
+									drawing.beginFill(color);
+									poly[0].forEach(function(point, index) {
+										var coords = project([point[1], point[0]]);
+										if (index === 0) drawing.moveTo(coords.x, coords.y);
+										else drawing.lineTo(coords.x, coords.y);
+									});
+									drawing.closePath();
+									for (var i = 1; i < poly.length; i++) {
+										poly[i].forEach(function(point, index) {
+											var coords = project([point[1], point[0]]);
+											if (index === 0) drawing.moveTo(coords.x, coords.y);
+											else drawing.lineTo(coords.x, coords.y);
+										});
+										drawing.closePath();
+										drawing.addHole();
+									}
+									cities.push(drawing);
+									container.addChild(drawing);
+								}
+							}
+							var res = feature.properties.res;
+							if (res !== undefined) {
+								if (res === -1) color = 0xFFFFFF;
+								else {
+									var tint = d3.color(colorScaleTour2(res)).rgb();
+									color = 256 * (tint.r * 256 + tint.g) + tint.b;
+								}
+							} else {
+								var tint = d3.color(colorScale(Math.random() * 100)).rgb();
+								color = 256 * (tint.r * 256 + tint.g) + tint.b;
+							}
+
+							if (feature.geometry.type === 'Polygon') {
+								drawPoly(feature.geometry.coordinates);
+							} else if (feature.geometry.type == 'MultiPolygon') {
+								feature.geometry.coordinates.forEach(drawPoly);
+							}
+						});
+					}
+					firstDraw = false;
+					prevZoom = zoom;
+					renderer.render(container);
+				}, pixiContainer, {
+					padding: 0.2,
+					forceCanvas: /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
+				});
+			})();
+			pixiLayer.addTo(map);
+		});
+	});
+</script>
+</body>
+</html>
