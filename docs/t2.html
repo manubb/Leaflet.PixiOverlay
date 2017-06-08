@@ -81,7 +81,6 @@
 						geojson.features.forEach(function(feature) {
 							var color;
 							function drawPoly(poly) {
-								if (poly.length > 1) console.log('holes:', poly.length - 1);
 								if (poly.length === 1) {
 									var coords = poly[0].map(function(point) {
 										var proj = project([point[1], point[0]]);
