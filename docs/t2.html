@@ -43,6 +43,7 @@
 	document.addEventListener("DOMContentLoaded", function() {
 		getJSON('data/tour2.topojson', function(topo) {
 			var geojson = topojson.feature(topo, topo.objects.tour2);
+			var interiors = topojson.mesh(topo, topo.objects.tour2, function(a, b) { return a !== b; });
 			var map = L.map('map').setView([46.953387, 2.892341], 6);
 			L.tileLayer('//stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
 				subdomains: 'abcd',
@@ -61,14 +62,12 @@
 				var colorScale = d3.scaleLinear()
 					.domain([0, 50, 100])
 					.range(["#c6233c", "#ffd300", "#008000"]);
-
 				var focus = null;
 				var pixiContainer = new PIXI.Graphics();
 				pixiContainer.alpha = 0.8;
 				var colorScaleTour2 = d3.scaleLinear()
-						.domain([0, 0.48, 0.52, 1])
+						.domain([0, 0.499, 0.501, 1])
 						.range(["#000000", "#83726D", "#FFD75C", "#ffee00"]);
-
 				return L.pixiOverlay(function(utils) {
 					var zoom = utils.getMap().getZoom();
 					var container = utils.getContainer();
@@ -83,7 +82,6 @@
 							document.body.removeChild(document.querySelector('#webgl'));
 						}
 						prevZoom = zoom;
-						container.lineStyle(2 / utils.getScale(12), 0x777777, 0.8);
 						geojson.features.forEach(function(feature) {
 							var color;
 							function drawPoly(poly) {
@@ -99,7 +97,6 @@
 									container.drawShape(shape);
 								} else {
 									var drawing = new PIXI.Graphics();
-									drawing.lineStyle(2 / utils.getScale(12), 0x777777, 0.8);
 									drawing.beginFill(color);
 									poly[0].forEach(function(point, index) {
 										var coords = project([point[1], point[0]]);
@@ -137,6 +134,16 @@
 							} else if (feature.geometry.type == 'MultiPolygon') {
 								feature.geometry.coordinates.forEach(drawPoly);
 							}
+						});
+						var mesh = new PIXI.Graphics();
+						container.addChild(mesh);
+						mesh.lineStyle(2 / utils.getScale(12), 0x777777, 0.8);
+						interiors.coordinates.forEach(function(path) {
+							path.forEach(function(point, index) {
+								var coords = project([point[1], point[0]]);
+								if (index === 0) mesh.moveTo(coords.x, coords.y);
+								else mesh.lineTo(coords.x, coords.y);
+							});
 						});
 					}
 					firstDraw = false;
