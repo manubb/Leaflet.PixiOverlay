@@ -1,1 +1,171 @@
-./t1.html
+<!DOCTYPE html>
+<html style="height: 100%; margin: 0;">
+<head>
+	<title>Leaflet.PixiOverlay: 2017 French presidential election, first round</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<link rel="stylesheet" href="css/leaflet.css"/>
+	<link rel="stylesheet" href="css/carte.css"/>
+	<script src="js/example.min.js"></script>
+	<script src="js/tools.min.js"></script>
+</head>
+<body style="height: 100%; margin: 0; overflow: hidden;">
+<div id="map" style="height: 100%; width: 100%;" class="cartes">
+	<div class="legend geometry top center hide">
+		<div class="wrapper">
+			<div class="content"></div>
+		</div>
+	</div>
+</div>
+<img id="webgl" src="img/WebGL_Logo.png" style="position: absolute; top: 20px; left: 20px; height: 50px; z-index: 600; pointer-events: none; display: none;" >
+<script>
+	var getJSON = function(url, successHandler, errorHandler) {
+		var xhr = typeof XMLHttpRequest != 'undefined'
+			? new XMLHttpRequest()
+			: new ActiveXObject('Microsoft.XMLHTTP');
+		xhr.open('get', url, true);
+		xhr.onreadystatechange = function() {
+			var status;
+			var data;
+			if (xhr.readyState == 4) {
+				status = xhr.status;
+				if (status == 200) {
+					data = JSON.parse(xhr.responseText);
+					successHandler && successHandler(data);
+				} else {
+					errorHandler && errorHandler(status);
+				}
+			}
+		};
+		xhr.send();
+	};
+
+	document.addEventListener("DOMContentLoaded", function() {
+		getJSON('data/tour1.topojson', function(topo) {
+			var geojson = topojson.feature(topo, topo.objects.tour1);
+			var interiors = topojson.mesh(topo, topo.objects.tour1, function(a, b) { return a !== b; });
+			var map = L.map('map').setView([46.953387, 2.892341], 6);
+			L.tileLayer('//stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
+				subdomains: 'abcd',
+				attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+				minZoom: 2,
+				maxZoom: 12
+			}).addTo(map);
+			map.attributionControl.setPosition('bottomleft');
+			map.zoomControl.setPosition('bottomright');
+			var legend = document.querySelector('div.legend.geometry');
+			var legendContent = legend.querySelector('.content');
+			var pixiLayer = (function() {
+				var firstDraw = true;
+				var prevZoom;
+				var cities = [];
+				var colorScale = d3.scaleLinear()
+					.domain([0, 50, 100])
+					.range(["#c6233c", "#ffd300", "#008000"]);
+				var alphaScale = d3.scaleLinear()
+					.domain([0, 0.35, 1])
+					.range([0, 0.8, 0.9])
+				var focus = null;
+				var pixiContainer = new PIXI.Graphics();
+				var panneau2color = {
+					'0': 0xffffff,
+					'1': 0x0089c4,
+					'2': 0x83726d,
+					'3': 0xfed002,
+					'4': 0xf19ec7,
+					'6': 0xf7704a,
+					'8': 0xcfe9f7,
+					'9': 	0xdc2a1b,
+					'10': 0x131413,
+					'11': 0x78bce0
+				};
+				return L.pixiOverlay(function(utils) {
+					var zoom = utils.getMap().getZoom();
+					var container = utils.getContainer();
+					var renderer = utils.getRenderer();
+					var project = utils.latLngToLayerPoint;
+					var scale = utils.getScale();
+					var invScale = 1 / scale;
+					if (firstDraw) {
+						if (renderer.type === PIXI.RENDERER_TYPE.WEBGL) {
+							document.querySelector('#webgl').style.display = 'block';
+						} else {
+							document.body.removeChild(document.querySelector('#webgl'));
+						}
+						prevZoom = zoom;
+						geojson.features.forEach(function(feature) {
+							var alpha, color;
+							function drawPoly(poly) {
+								if (poly.length === 1) {
+									var coords = poly[0].map(function(point) {
+										var proj = project([point[1], point[0]]);
+										return new PIXI.Point(proj.x, proj.y)
+									});
+									var shape = new PIXI.Polygon(coords);
+									shape.close();
+									cities.push(shape);
+									container.beginFill(color, alpha);
+									container.drawShape(shape);
+								} else {
+									var drawing = new PIXI.Graphics();
+									drawing.beginFill(color, alpha);
+									poly[0].forEach(function(point, index) {
+										var coords = project([point[1], point[0]]);
+										if (index === 0) drawing.moveTo(coords.x, coords.y);
+										else drawing.lineTo(coords.x, coords.y);
+									});
+									drawing.closePath();
+									for (var i = 1; i < poly.length; i++) {
+										poly[i].forEach(function(point, index) {
+											var coords = project([point[1], point[0]]);
+											if (index === 0) drawing.moveTo(coords.x, coords.y);
+											else drawing.lineTo(coords.x, coords.y);
+										});
+										drawing.closePath();
+										drawing.addHole();
+									}
+									cities.push(drawing);
+									container.addChild(drawing);
+								}
+							}
+							var res = feature.properties.res;
+							if (res !== undefined) {
+								color = panneau2color[res.num || 0];
+								alpha = alphaScale(res.ratio || 0.5);
+							} else {
+								var tint = d3.color(colorScale(Math.random() * 100)).rgb();
+								color = 256 * (tint.r * 256 + tint.g) + tint.b;
+								alpha = 0.8;
+							}
+
+							if (feature.geometry.type === 'Polygon') {
+								drawPoly(feature.geometry.coordinates);
+							} else if (feature.geometry.type == 'MultiPolygon') {
+								feature.geometry.coordinates.forEach(drawPoly);
+							}
+						});
+						var mesh = new PIXI.Graphics();
+						container.addChild(mesh);
+						mesh.lineStyle(2 / utils.getScale(12), 0x777777, 0.8);
+						interiors.coordinates.forEach(function(path) {
+							path.forEach(function(point, index) {
+								var coords = project([point[1], point[0]]);
+								if (index === 0) mesh.moveTo(coords.x, coords.y);
+								else mesh.lineTo(coords.x, coords.y);
+							});
+						});
+					}
+					firstDraw = false;
+					prevZoom = zoom;
+					renderer.render(container);
+				}, pixiContainer, {
+					padding: 0.2,
+					forceCanvas: /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
+				});
+			})();
+			pixiLayer.addTo(map);
+		});
+	});
+</script>
+</body>
+</html>
