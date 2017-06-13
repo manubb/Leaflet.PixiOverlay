@@ -5,7 +5,7 @@ An overlay class for [Leaflet](http://leafletjs.com), a JS
 library for interactive maps.  Allows drawing overlay using [Pixi.js](http://www.pixijs.com/), a JavaScript library
 for drawing using WebGL that seamlessly falls back to HTML5's canvas if needed. Thanks to [Leaflet.D3SvgOverlay](https://github.com/teralytics/Leaflet.D3SvgOverlay) for inspiration.
 
-![screenshot](/docs/img/Leaflet.PixiOverlay.png)
+[![screenshot](/docs/img/Leaflet.PixiOverlay.png)](https://manubb.github.io/Leaflet.PixiOverlay/demo.html)
 
 ## Features
 
@@ -22,6 +22,8 @@ A very basic [demo](https://manubb.github.io/Leaflet.PixiOverlay/leaflet-quickst
 Largest [US cities](https://manubb.github.io/Leaflet.PixiOverlay/us-cities.html) (1000 markers).
 
 [French cities](https://manubb.github.io/Leaflet.PixiOverlay/french-cities.html) (36700 markers).
+
+French presidential 2017 election results: [first round](https://manubb.github.io/Leaflet.PixiOverlay/t1.html) and [second round](https://manubb.github.io/Leaflet.PixiOverlay/t2.html).
 
 ## Usage
 
