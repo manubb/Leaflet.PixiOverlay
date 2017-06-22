@@ -23,7 +23,9 @@ Largest [US cities](https://manubb.github.io/Leaflet.PixiOverlay/us-cities.html)
 
 [French cities](https://manubb.github.io/Leaflet.PixiOverlay/french-cities.html) (36700 markers).
 
-French presidential 2017 election results: [first round](https://manubb.github.io/Leaflet.PixiOverlay/t1.html) and [second round](https://manubb.github.io/Leaflet.PixiOverlay/t2.html).
+French presidential 2017 election results: [first round](https://manubb.github.io/Leaflet.PixiOverlay/t1.html) and [second round](https://manubb.github.io/Leaflet.PixiOverlay/t2.html) (36000 polygons).
+
+French legislative 2017 election results: [first round](https://manubb.github.io/Leaflet.PixiOverlay/leg-t1.html) and [second round](https://manubb.github.io/Leaflet.PixiOverlay/leg-t2.html) (36000 polygons).
 
 ## Usage
 
