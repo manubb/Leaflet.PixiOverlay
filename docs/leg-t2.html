@@ -42,9 +42,6 @@
 
 	document.addEventListener("DOMContentLoaded", function() {
 		getJSON('data/leg-t2.topojson', function(topo) {
-			var geojson = topojson.feature(topo, topo.objects['leg-t2']);
-			var interiors = topojson.mesh(topo, topo.objects['leg-t2'], function(a, b) { return a !== b && a.properties.ref === b.properties.ref;});
-			var circs = topojson.mesh(topo, topo.objects['leg-t2'], function(a, b) { return a !== b && a.properties.ref !== b.properties.ref;});
 			var map = L.map('map').setView([46.953387, 2.892341], 6);
 			L.tileLayer('//stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
 				subdomains: 'abcd',
@@ -102,14 +99,30 @@
 						} else {
 							document.body.removeChild(document.querySelector('#webgl'));
 						}
+						var transform = topo.transform;
+						topo.arcs.forEach(function(arc) {
+							var x = 0, y = 0;
+							arc.forEach(function(position) {
+								var proj = project([
+									(y += position[1]) * transform.scale[1] + transform.translate[1],
+									(x += position[0]) * transform.scale[0] + transform.translate[0]
+								]);
+								position[0] = proj.x;
+								position[1] = proj.y;
+							});
+						});
+						delete topo.transform;
+						var geojson = topojson.feature(topo, topo.objects['leg-t2']);
+						var interiors = topojson.mesh(topo, topo.objects['leg-t2'], function(a, b) { return a !== b && a.properties.ref === b.properties.ref;});
+						var circs = topojson.mesh(topo, topo.objects['leg-t2'], function(a, b) { return a !== b && a.properties.ref !== b.properties.ref;});
+
 						prevZoom = zoom;
 						geojson.features.forEach(function(feature) {
 							var alpha, color;
 							function drawPoly(poly) {
 								if (poly.length === 1) {
 									var coords = poly[0].map(function(point) {
-										var proj = project([point[1], point[0]]);
-										return new PIXI.Point(proj.x, proj.y)
+										return new PIXI.Point(point[0], point[1]);
 									});
 									var shape = new PIXI.Polygon(coords);
 									shape.close();
@@ -120,16 +133,14 @@
 									var drawing = new PIXI.Graphics();
 									drawing.beginFill(color, alpha);
 									poly[0].forEach(function(point, index) {
-										var coords = project([point[1], point[0]]);
-										if (index === 0) drawing.moveTo(coords.x, coords.y);
-										else drawing.lineTo(coords.x, coords.y);
+										if (index === 0) drawing.moveTo(point[0], point[1]);
+										else drawing.lineTo(point[0], point[1]);
 									});
 									drawing.closePath();
 									for (var i = 1; i < poly.length; i++) {
 										poly[i].forEach(function(point, index) {
-											var coords = project([point[1], point[0]]);
-											if (index === 0) drawing.moveTo(coords.x, coords.y);
-											else drawing.lineTo(coords.x, coords.y);
+											if (index === 0) drawing.moveTo(point[0], point[1]);
+											else drawing.lineTo(point[0], point[1]);
 										});
 										drawing.closePath();
 										drawing.addHole();
@@ -156,17 +167,15 @@
 						mesh.lineStyle(2 / utils.getScale(12), 0x777777, 0.8);
 						interiors.coordinates.forEach(function(path) {
 							path.forEach(function(point, index) {
-								var coords = project([point[1], point[0]]);
-								if (index === 0) mesh.moveTo(coords.x, coords.y);
-								else mesh.lineTo(coords.x, coords.y);
+								if (index === 0) mesh.moveTo(point[0], point[1]);
+								else mesh.lineTo(point[0], point[1]);
 							});
 						});
 						mesh.lineStyle(4 / utils.getScale(12), 0x000000, 1);
 						circs.coordinates.forEach(function(path) {
 							path.forEach(function(point, index) {
-								var coords = project([point[1], point[0]]);
-								if (index === 0) mesh.moveTo(coords.x, coords.y);
-								else mesh.lineTo(coords.x, coords.y);
+								if (index === 0) mesh.moveTo(point[0], point[1]);
+								else mesh.lineTo(point[0], point[1]);
 							});
 						});
 					}
