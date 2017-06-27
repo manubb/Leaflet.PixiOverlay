@@ -87,3 +87,46 @@ div.cartes .legend.right .content {
 	border-top-right-radius:0;
 	border-bottom-right-radius:0;
 }
+
+div.main-legend {
+	z-index: 100009;
+	position: absolute;
+	right: 0;
+	background: #eee;
+	border-radius: 10px;
+	font: 14px 'Verdana', Monaco, monospace;
+	margin-right: 10px;
+}
+
+div.main-legend ul {
+	list-style-type: none;
+	padding: 10px;
+	margin: 0;
+}
+
+div.main-legend li {
+	padding-top: 3px;
+	padding-bottom: 3px;
+}
+
+
+div.main-legend .color {
+	position: relative;
+	margin-right: 1.5em;
+	height: 1em;
+	width: 0;
+	float: left;
+}
+
+div.main-legend .color::before {
+	  content: '';
+    height: 1.2em;
+    width: 1.2em;
+    position: absolute;
+    left: 0;
+    background-color: inherit;
+}
+
+.leaflet-legend a {
+	background-image: url('../img/legend.svg');
+}

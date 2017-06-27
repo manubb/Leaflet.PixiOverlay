@@ -1,0 +1,84 @@
+div.cartes .legend .content {
+     font-weight: normal;
+     padding: 0 0 1em 0;
+     font: 14px 'Verdana', Monaco, monospace;
+}
+
+.legend table {
+    width: 100%
+}
+
+.legende::before {
+    content: "";
+    display: block;
+    position: absolute;
+    background: white;
+    opacity: .8;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0
+}
+
+.legend .nuance::before {
+    content: '';
+    height: 1.2em;
+    width: 1.2em;
+    position: absolute;
+    left: 0;
+    background-color: inherit
+}
+
+.legend .nuance {
+    position: relative;
+    margin-right: 1.5em;
+    height: 1em;
+    width: 0;
+    float: left
+}
+
+.legend .header::before {
+    content: "";
+    display: block;
+    position: absolute;
+    background: black;
+    opacity: .5;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.legend .header {
+    position: relative;
+    color: #eeeeec;
+    padding: 5px 10px;
+}
+
+.results .nom {
+    position: relative;
+    color: white;
+    font-weight: bolder
+}
+
+.results .close {
+    float: right;
+    position: relative;
+    cursor: pointer;
+    background: url('../img/close.png');
+    width: 16px;
+    height: 16px;
+    margin-left: 15px;
+}
+
+.results table {
+    padding: 5px 5px
+}
+
+.results table:last-child {
+    padding-bottom: 0;
+}
+
+.results td {
+    line-height: 1.2em
+}

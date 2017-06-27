@@ -6,7 +6,7 @@
   "main": "L.PixiOverlay.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:doc": "cp ./node_modules/leaflet/dist/leaflet.css ./docs/css && ./node_modules/uglify-js/bin/uglifyjs ./node_modules/leaflet/dist/leaflet-src.js ./node_modules/pixi.js/dist/pixi.js ./L.PixiOverlay.js -m -c -o ./docs/js/example.min.js && ./node_modules/uglify-js/bin/uglifyjs ./node_modules/d3-array/build/d3-array.js ./node_modules/d3-interpolate/build/d3-interpolate.js ./node_modules/d3-color/build/d3-color.js ./node_modules/d3-scale/build/d3-scale.js ./node_modules/d3-quadtree/build/d3-quadtree.js ./node_modules/topojson-client/dist/topojson-client.js ./docs_src/js/circles.js -m -c -o ./docs/js/tools.min.js",
+    "build:doc": "cp ./node_modules/leaflet/dist/leaflet.css ./docs/css && ./node_modules/uglify-js/bin/uglifyjs ./node_modules/leaflet/dist/leaflet-src.js ./node_modules/pixi.js/dist/pixi.js ./L.PixiOverlay.js -m -c -o ./docs/js/example.min.js && ./node_modules/uglify-js/bin/uglifyjs ./node_modules/d3-array/build/d3-array.js ./node_modules/d3-interpolate/build/d3-interpolate.js ./node_modules/d3-color/build/d3-color.js ./node_modules/d3-scale/build/d3-scale.js ./node_modules/d3-quadtree/build/d3-quadtree.js ./node_modules/topojson-client/dist/topojson-client.js ./node_modules/rbush/rbush.js ./node_modules/template-mb/template.js ./node_modules/barbiche/barbiche.js ./docs_src/js/circles.js -m -c -o ./docs/js/tools.min.js",
     "build:minify": "./node_modules/uglify-js/bin/uglifyjs ./L.PixiOverlay.js -m -c -o ./L.PixiOverlay.min.js"
   },
   "repository": {
@@ -25,12 +25,15 @@
     "pixi.js": "^4.5.2"
   },
   "devDependencies": {
+    "barbiche": "^3.0.10",
     "d3-array": "^1.2.0",
     "d3-color": "^1.0.3",
     "d3-interpolate": "^1.1.5",
     "d3-quadtree": "^1.0.3",
     "d3-scale": "^1.0.6",
     "jshint": "^2.9.4",
+    "rbush": "^2.0.1",
+    "template-mb": "^2.0.6",
     "topojson-client": "^3.0.0",
     "uglify-js": "^3.0.6"
   },
