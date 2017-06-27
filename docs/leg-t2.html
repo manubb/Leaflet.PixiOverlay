@@ -318,8 +318,8 @@
 						}
 						utils.getMap().on('click', function(e) {
 							var feat = findFeature(e.latlng);
+							if (focus) focus.removeFrom(utils.getMap());
 							if (feat) {
-								if (focus) focus.removeFrom(utils.getMap());
 								if (feat.properties.res) {
 									focus = L.geoJSON(feat, {
 										coordsToLatLng: utils.layerPointToLatLng,
@@ -351,6 +351,9 @@
 									focus = null;
 									L.DomUtil.addClass(legend, 'hide');
 								};
+							} else {
+								focus = null;
+								L.DomUtil.addClass(legend, 'hide');
 							}
 						});
 						var self = this;
