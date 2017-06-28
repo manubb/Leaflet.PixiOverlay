@@ -399,7 +399,7 @@
 								var latlng = [feature.geometry.coordinates[1], feature.geometry.coordinates[0]];
 								var code = feature.properties.citycode;
 								var point = project(latlng);
-								var epsilon = 20;
+								var epsilon = 35;
 								var features = tree.search({
 									minX: point.x - epsilon,
 									minY: point.y - epsilon,
