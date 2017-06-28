@@ -6,7 +6,7 @@
 	<meta name="viewport" content="width=device-width">
 	<link rel="stylesheet" href="css/leaflet.css"/>
 	<link rel="stylesheet" href="css/carte.css"/>
-	<link rel="stylesheet" href="css/leg.css"/>
+	<link rel="stylesheet" href="css/elec.css"/>
 	<script src="js/example.min.js"></script>
 	<script src="js/tools.min.js"></script>
 </head>
@@ -91,7 +91,10 @@
 	document.addEventListener("DOMContentLoaded", function() {
 		getJSON('data/leg-t2.topojson', function(topo) {
 			var mainLegend = document.querySelector('.main-legend');
+			var API_URL = '//api-adresse.data.gouv.fr';
+			var SHORT_CITY_NAMES = ['y', 'ay', 'bu', 'by', 'eu', 'fa', 'gy', 'oo', 'oz', 'py', 'ri', 'ry', 'sy', 'ur', 'us', 'uz'];
 			var map = L.map('map').setView([46.953387, 2.892341], 6);
+			var hash = new L.Hash(map);
 			L.tileLayer('//stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
 				subdomains: 'abcd',
 				attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
@@ -299,10 +302,10 @@
 						function findFeature(latlng) {
 							var point = project(latlng);
 							var features = tree.search({
-						    minX: point.x,
-						    minY: point.y,
-						    maxX: point.x,
-						    maxY: point.y
+								minX: point.x,
+								minY: point.y,
+								maxX: point.x,
+								maxY: point.y
 							});
 							for (var i = 0; i < features.length; i++) {
 								var feat = features[i].feature;
@@ -316,8 +319,7 @@
 								}
 							}
 						}
-						utils.getMap().on('click', function(e) {
-							var feat = findFeature(e.latlng);
+						function focusFeature(feat) {
 							if (focus) focus.removeFrom(utils.getMap());
 							if (feat) {
 								if (feat.properties.res) {
@@ -355,6 +357,10 @@
 								focus = null;
 								L.DomUtil.addClass(legend, 'hide');
 							}
+						}
+						utils.getMap().on('click', function(e) {
+							var feat = findFeature(e.latlng);
+							focusFeature(feat);
 						});
 						var self = this;
 						utils.getMap().on('mousemove', L.Util.throttle(function(e) {
@@ -374,6 +380,50 @@
 								L.DomUtil.addClass(legend, 'hide');
 							}
 						});
+						L.control.photon({
+							url: API_URL + '/search/?type=municipality&&',
+							placeholder: 'Rechercher une commune',
+							position: 'topright',
+							minChar: function (val) {
+								return SHORT_CITY_NAMES.indexOf(val) !== -1 || val.length >= 3;
+							},
+							feedbackEmail: null,
+							noResultLabel: 'Aucun résultat',
+							formatResult: function (feature, el) {
+								var title = L.DomUtil.create('strong', '', el);
+								var content  = feature.properties.label || feature.properties.name;
+								if (feature.properties.postcode) content += '(' + feature.properties.postcode + ')';
+								title.innerHTML = content;
+							},
+							onSelected: function (feature) {
+								var latlng = [feature.geometry.coordinates[1], feature.geometry.coordinates[0]];
+								var code = feature.properties.citycode;
+								var point = project(latlng);
+								var epsilon = 20;
+								var features = tree.search({
+									minX: point.x - epsilon,
+									minY: point.y - epsilon,
+									maxX: point.x + epsilon,
+									maxY: point.y + epsilon
+								});
+								var feat;
+								features.every(function(item) {
+									var insee;
+									var ref = item.feature.properties.ref;
+									if (ref[0] === '9') {
+										insee = ref.substring(0, 2) + item.feature.properties.city;
+									} else {
+										insee = ref.substring(1, 3) + item.feature.properties.city;
+									}
+									if (insee === code) {
+										feat = item.feature;
+										return false;
+									} else return true;
+								});
+								focusFeature(feat);
+								utils.getMap().setView(latlng, 12);
+							}
+						}).addTo(utils.getMap());
 					}
 					firstDraw = false;
 					prevZoom = zoom;

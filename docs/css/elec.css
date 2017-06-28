@@ -82,3 +82,45 @@ div.cartes .legend .content {
 .results td {
     line-height: 1.2em
 }
+
+ul.photon-autocomplete {
+    position: absolute;
+    background-color: white;
+    z-index: 1000;
+    box-shadow: 0 4px 9px #999999;
+    display: none;
+    padding-left: 0;
+    font: 14px 'Verdana', Monaco, monospace;
+}
+.photon-autocomplete li {
+    min-height: 20px;
+    line-height: 1em;
+    padding: 5px 10px;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 1em;
+}
+.photon-autocomplete li strong {
+    display: block;
+}
+.photon-autocomplete li.on {
+    background-color: #cccccc;
+    cursor: pointer;
+}
+.photon-autocomplete li.photon-no-result {
+    text-align: center;
+    color: #666;
+    font-size: 0.9em;
+    line-height: 40px;
+}
+.photon-autocomplete .photon-feedback {
+    display: block;
+    text-align: right;
+    font-size: 0.8em;
+    padding: 3px;
+    color: #999;
+    border-top: 1px solid #eee;
+}
+.photon-input:focus {
+    width: 300px;
+}
