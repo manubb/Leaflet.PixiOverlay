@@ -124,3 +124,6 @@ ul.photon-autocomplete {
 .photon-input:focus {
     width: 300px;
 }
+.photon-input {
+    min-width: 170px;
+}

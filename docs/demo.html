@@ -6,15 +6,61 @@
 	<meta name="viewport" content="width=device-width">
 	<link rel="stylesheet" href="css/leaflet.css"/>
 	<link rel="stylesheet" href="css/carte.css"/>
+	<link rel="stylesheet" href="css/elec.css"/>
 	<script src="js/example.min.js"></script>
 	<script src="js/tools.min.js"></script>
 </head>
 <body style="height: 100%; margin: 0; overflow: hidden;">
+<template id="details">
+	<div class="results">
+		<div class="header"><span class="nom">{{nom}} ({{dpt}})</span><span class="close"></span></div>
+		<table>
+			<tbody>
+				<tr>
+					<td>Inscrits: {{inscrits}}</td><td>Abstention: {{getRatio(abs, inscrits)}}%</td>
+				</tr>
+				<tr>
+					<td>Exprimés: {{getRatio(exp, votants)}}%&nbsp;</td>
+					<td>Blancs: {{getRatio(blancs, votants)}}%&nbsp;</td>
+					<td>Nuls: {{getRatio(nuls, votants)}}%</td>
+				</tr>
+			</tbody>
+		</table>
+		<table>
+			<tbody>
+				<tr bb-repeat="res: 'candidate'">
+					<td><div class="nuance" bb-attr="'background-color: #' + fill(panneau2color[candidate.panneau].toString(16)) + ';' : 'style'"></div>{{panneau2candidate[candidate.panneau]}}</td>
+					<td>{{getRatio(candidate.voix, exp)}}%</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</template>
 <div id="map" style="height: 100%; width: 100%;" class="cartes">
 	<div class="legend geometry top center hide">
 		<div class="wrapper">
 			<div class="content"></div>
 		</div>
+	</div>
+	<div class="main-legend hide" style="bottom: 125px;">
+		<ul>
+			<li><span class="color" style="background-color: #b61d1d;"></span>Mme Nathalie ARTHAUD</li>
+			<li><span class="color" style="background-color: #f7704a;"></span>M. Philippe POUTOU</li>
+			<li><span class="color" style="background-color: #dc2a1b;"></span>M. Jean-Luc MÉLENCHON</li>
+			<li><span class="color" style="background-color: #f19ec7;"></span>M. Benoît HAMON</li>
+			<li><span class="color" style="background-color: #fed002;"></span>M. Emmanuel MACRON</li>
+			<li><span class="color" style="background-color: #cfe9f7;"></span>M. Jean LASSALLE</li>
+			<li><span class="color" style="background-color: #78bce0;"></span>M. François FILLON</li>
+			<li><span class="color" style="background-color: #0089c4;"></span>M. Nicolas DUPONT-AIGNAN</li>
+			<li><span class="color" style="background-color: #224466;"></span>M. François ASSELINEAU</li>
+			<li><span class="color" style="background-color: #8d6e63;"></span>M. Jacques CHEMINADE</li>
+			<li><span class="color" style="background-color: #83726d;"></span>Mme Marine LE PEN</li>
+			<li><span class="color" style="background-color: #ffffff;"></span>Pas de résultats</li>
+		</ul>
+		<div style="padding: 10px; position: relative;">
+			<span style="position: absolute; top: 0.8em; left: 0.8em;">0%</span>
+			<div class="scale" style="border-width: 1px; border-style: solid; border-color: #bbb;height: 1.3em; width: 100%; background: linear-gradient(to right, rgba(153, 51, 153, 0), rgba(153, 51, 153, 0.8) 35%, rgba(153, 51, 153, 0.9));"></div>
+			<span style="position: absolute; top: 0.8em; right: 0.8em">100%</span></div>
 	</div>
 </div>
 <img id="webgl" src="img/WebGL_Logo.png" style="position: absolute; top: 20px; left: 20px; height: 50px; z-index: 600; pointer-events: none; display: none;" >
@@ -42,9 +88,11 @@
 
 	document.addEventListener("DOMContentLoaded", function() {
 		getJSON('data/tour1.topojson', function(topo) {
-			var geojson = topojson.feature(topo, topo.objects.tour1);
-			var interiors = topojson.mesh(topo, topo.objects.tour1, function(a, b) { return a !== b; });
+			var mainLegend = document.querySelector('.main-legend');
+			var API_URL = '//api-adresse.data.gouv.fr';
+			var SHORT_CITY_NAMES = ['y', 'ay', 'bu', 'by', 'eu', 'fa', 'gy', 'oo', 'oz', 'py', 'ri', 'ry', 'sy', 'ur', 'us', 'uz'];
 			var map = L.map('map').setView([46.953387, 2.892341], 6);
+			var hash = new L.Hash(map);
 			L.tileLayer('//stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
 				subdomains: 'abcd',
 				attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
@@ -53,6 +101,38 @@
 			}).addTo(map);
 			map.attributionControl.setPosition('bottomleft');
 			map.zoomControl.setPosition('bottomright');
+
+			L.Control.Legend = L.Control.extend({
+				onAdd: function(map) {
+					var button = L.DomUtil.create('div');
+					L.DomUtil.addClass(button, 'leaflet-bar leaflet-legend');
+					var anchor = L.DomUtil.create('a');
+					anchor.setAttribute('href', '#');
+					anchor.setAttribute('title', 'Légende');
+					anchor.setAttribute('role', 'button');
+					anchor.setAttribute('aria-label', 'Légende');
+					button.appendChild(anchor);
+					L.DomEvent.on(button, 'dblclick', function(e) {
+						L.DomEvent.stopPropagation(e);
+					});
+					L.DomEvent.on(button, 'click', function(e) {
+						L.DomEvent.stopPropagation(e);
+						L.DomEvent.preventDefault(e);
+						if (L.DomUtil.hasClass(mainLegend, 'hide')) {
+							L.DomUtil.removeClass(mainLegend, 'hide');
+						} else L.DomUtil.addClass(mainLegend, 'hide');
+					});
+					return button;
+			},
+				onRemove: function(map) {}
+			});
+
+			L.control.legend = function(opts) {
+				return new L.Control.Legend(opts);
+			}
+
+			L.control.legend({ position: 'bottomright' }).addTo(map);
+
 			var legend = document.querySelector('div.legend.geometry');
 			var legendContent = legend.querySelector('.content');
 			var pixiLayer = (function() {
@@ -64,8 +144,7 @@
 					.range(["#c6233c", "#ffd300", "#008000"]);
 				var alphaScale = d3.scaleLinear()
 					.domain([0, 0.35, 1])
-					.range([0, 0.8, 0.9])
-				var focus = null;
+					.range([0, 0.8, 0.9]);
 				var pixiContainer = new PIXI.Graphics();
 				var panneau2color = {
 					'0': 0xffffff,
@@ -73,12 +152,48 @@
 					'2': 0x83726d,
 					'3': 0xfed002,
 					'4': 0xf19ec7,
+					'5': 0xb61d1d,
 					'6': 0xf7704a,
+					'7': 0x8d6e63,
 					'8': 0xcfe9f7,
 					'9': 	0xdc2a1b,
-					'10': 0x131413,
+					'10': 0x224466,
 					'11': 0x78bce0
 				};
+				var panneau2candidate = {
+					'1': 'M. Nicolas DUPONT-AIGNAN',
+					'2': 'Mme Marine LE PEN',
+					'3': 'M. Emmanuel MACRON',
+					'4': 'M. Benoît HAMON',
+					'5': 'Mme Nathalie ARTHAUD',
+					'6': 'M. Philippe POUTOU',
+					'7': 'M. Jacques CHEMINADE',
+					'8': 'M. Jean LASSALLE',
+					'9': 	'M. Jean-Luc MÉLENCHON',
+					'10': 'M. François ASSELINEAU',
+					'11': 'M. François FILLON'
+				};
+				var tree = window.tree = rbush();
+				function containsPoint(polygon, p) {
+					var inside = false,
+					    part, p1, p2, i, j, k, len, len2;
+					// ray casting algorithm for detecting if point is in polygon
+					for (i = 0, len = polygon.length; i < len; i++) {
+						part = polygon[i];
+
+						for (j = 0, len2 = part.length, k = len2 - 1; j < len2; k = j++) {
+							p1 = part[j];
+							p2 = part[k];
+
+							if (((p1[1] > p.y) !== (p2[1] > p.y)) && (p.x < (p2[0] - p1[0]) * (p.y - p1[1]) / (p2[1] - p1[1]) + p1[0])) {
+								inside = !inside;
+							}
+						}
+					}
+					return inside;
+				}
+				var focus = null;
+				var barbiche = Barbiche();
 				return L.pixiOverlay(function(utils) {
 					var zoom = utils.getMap().getZoom();
 					var container = utils.getContainer();
@@ -92,14 +207,29 @@
 						} else {
 							document.body.removeChild(document.querySelector('#webgl'));
 						}
+						var transform = topo.transform;
+						topo.arcs.forEach(function(arc) {
+							var x = 0, y = 0;
+							arc.forEach(function(position) {
+								var proj = project([
+									(y += position[1]) * transform.scale[1] + transform.translate[1],
+									(x += position[0]) * transform.scale[0] + transform.translate[0]
+								]);
+								position[0] = proj.x;
+								position[1] = proj.y;
+							});
+						});
+						delete topo.transform;
+						var geojson = topojson.feature(topo, topo.objects.tour1);
+						var interiors = topojson.mesh(topo, topo.objects.tour1, function(a, b) { return a !== b; });
+
 						prevZoom = zoom;
 						geojson.features.forEach(function(feature) {
 							var alpha, color;
 							function drawPoly(poly) {
 								if (poly.length === 1) {
 									var coords = poly[0].map(function(point) {
-										var proj = project([point[1], point[0]]);
-										return new PIXI.Point(proj.x, proj.y)
+										return new PIXI.Point(point[0], point[1]);
 									});
 									var shape = new PIXI.Polygon(coords);
 									shape.close();
@@ -110,16 +240,14 @@
 									var drawing = new PIXI.Graphics();
 									drawing.beginFill(color, alpha);
 									poly[0].forEach(function(point, index) {
-										var coords = project([point[1], point[0]]);
-										if (index === 0) drawing.moveTo(coords.x, coords.y);
-										else drawing.lineTo(coords.x, coords.y);
+										if (index === 0) drawing.moveTo(point[0], point[1]);
+										else drawing.lineTo(point[0], point[1]);
 									});
 									drawing.closePath();
 									for (var i = 1; i < poly.length; i++) {
 										poly[i].forEach(function(point, index) {
-											var coords = project([point[1], point[0]]);
-											if (index === 0) drawing.moveTo(coords.x, coords.y);
-											else drawing.lineTo(coords.x, coords.y);
+											if (index === 0) drawing.moveTo(point[0], point[1]);
+											else drawing.lineTo(point[0], point[1]);
 										});
 										drawing.closePath();
 										drawing.addHole();
@@ -137,23 +265,163 @@
 								color = 256 * (tint.r * 256 + tint.g) + tint.b;
 								alpha = 0.8;
 							}
-
+							var bounds;
 							if (feature.geometry.type === 'Polygon') {
+								bounds = L.bounds(feature.geometry.coordinates[0]);
 								drawPoly(feature.geometry.coordinates);
 							} else if (feature.geometry.type == 'MultiPolygon') {
 								feature.geometry.coordinates.forEach(drawPoly);
+								feature.geometry.coordinates.forEach(function(poly, index) {
+									if (index === 0) bounds = L.bounds(poly[0]);
+									else {
+										poly[0].forEach(function(point) {
+											bounds.extend(point);
+										});
+									}
+								});
 							}
+							tree.insert({
+								minX: bounds.min.x,
+								minY: bounds.min.y,
+								maxX: bounds.max.x,
+								maxY: bounds.max.y,
+								feature: feature
+							});
 						});
 						var mesh = new PIXI.Graphics();
 						container.addChild(mesh);
 						mesh.lineStyle(2 / utils.getScale(12), 0x777777, 0.8);
 						interiors.coordinates.forEach(function(path) {
 							path.forEach(function(point, index) {
-								var coords = project([point[1], point[0]]);
-								if (index === 0) mesh.moveTo(coords.x, coords.y);
-								else mesh.lineTo(coords.x, coords.y);
+								if (index === 0) mesh.moveTo(point[0], point[1]);
+								else mesh.lineTo(point[0], point[1]);
 							});
 						});
+						function findFeature(latlng) {
+							var point = project(latlng);
+							var features = tree.search({
+								minX: point.x,
+								minY: point.y,
+								maxX: point.x,
+								maxY: point.y
+							});
+							for (var i = 0; i < features.length; i++) {
+								var feat = features[i].feature;
+								if (feat.geometry.type === 'Polygon') {
+									if (containsPoint(feat.geometry.coordinates, point)) return feat;
+								} else {
+									for (var j = 0; j < feat.geometry.coordinates.length; j++) {
+										var ring = feat.geometry.coordinates[j];
+										if (containsPoint(ring, point)) return feat;
+									}
+								}
+							}
+						}
+						function focusFeature(feat) {
+							if (focus) focus.removeFrom(utils.getMap());
+							if (feat) {
+								if (feat.properties.res) {
+									focus = L.geoJSON(feat, {
+										coordsToLatLng: utils.layerPointToLatLng,
+										style: function (feature) {
+											return {
+												fillColor: '#fff',
+												fillOpacity: 0.7,
+												stroke: false
+											};
+										}
+									});
+									focus.addTo(utils.getMap());
+									var insee = feat.properties.insee;
+									var dpt;
+									if (insee[0] === '9' && insee[1] === '7') {
+										dpt = insee.substring(0, 3);
+									} else {
+										dpt = '0' + insee.substring(0, 2);
+									}
+									getJSON('data/t1/' + dpt + '/' + feat.properties.insee + '.json', function(data) {
+										var merged = barbiche('details').merge({
+											panneau2candidate: panneau2candidate,
+											panneau2color: panneau2color,
+											getRatio: function(a, b) {return Math.round(a * 10000 / b) / 100;},
+											fill: function(str) {
+												if (str.length < 6) {
+													return (new Array(6 - str.length + 1)).join('0') + str;
+												} else return str;
+											}
+										}, data);
+										legendContent.innerHTML = '';
+										legendContent.appendChild(merged);
+										L.DomUtil.removeClass(legend, 'hide');
+									});
+								} else {
+									focus = null;
+									L.DomUtil.addClass(legend, 'hide');
+								};
+							} else {
+								focus = null;
+								L.DomUtil.addClass(legend, 'hide');
+							}
+						}
+						utils.getMap().on('click', function(e) {
+							var feat = findFeature(e.latlng);
+							focusFeature(feat);
+						});
+						var self = this;
+						utils.getMap().on('mousemove', L.Util.throttle(function(e) {
+							var feat = findFeature(e.latlng);
+							if (feat && feat.properties.res) {
+								L.DomUtil.addClass(self._container, 'leaflet-interactive');
+							} else {
+								L.DomUtil.removeClass(self._container, 'leaflet-interactive');
+							}
+						}, 32));
+						legendContent.addEventListener('click', function(e) {
+							e.stopPropagation();
+							var target = e.target;
+							if (L.DomUtil.hasClass(target, 'close')) {
+								focus.removeFrom(utils.getMap());
+								focus = null;
+								L.DomUtil.addClass(legend, 'hide');
+							}
+						});
+						L.control.photon({
+							url: API_URL + '/search/?type=municipality&&',
+							placeholder: 'Rechercher une commune',
+							position: 'topright',
+							minChar: function (val) {
+								return SHORT_CITY_NAMES.indexOf(val) !== -1 || val.length >= 3;
+							},
+							feedbackEmail: null,
+							noResultLabel: 'Aucun résultat',
+							formatResult: function (feature, el) {
+								var title = L.DomUtil.create('strong', '', el);
+								var content  = feature.properties.label || feature.properties.name;
+								if (feature.properties.postcode) content += '(' + feature.properties.postcode + ')';
+								title.innerHTML = content;
+							},
+							onSelected: function (feature) {
+								var latlng = [feature.geometry.coordinates[1], feature.geometry.coordinates[0]];
+								var code = feature.properties.citycode;
+								var point = project(latlng);
+								var epsilon = 35;
+								var features = tree.search({
+									minX: point.x - epsilon,
+									minY: point.y - epsilon,
+									maxX: point.x + epsilon,
+									maxY: point.y + epsilon
+								});
+								var feat;
+								features.every(function(item) {
+									if (item.feature.properties.insee === code) {
+										feat = item.feature;
+										return false;
+									} else return true;
+								});
+								focusFeature(feat);
+								utils.getMap().setView(latlng, 12);
+							}
+						}).addTo(utils.getMap());
 					}
 					firstDraw = false;
 					prevZoom = zoom;
