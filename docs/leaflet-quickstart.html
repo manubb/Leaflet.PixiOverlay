@@ -148,7 +148,7 @@
 					renderer.render(container);
 				}, pixiContainer, {
 					padding: 0.2,
-					doubleBuffering: /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
+					forceCanvas: /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
 				});
 			})();
 			pixiOverlay.addTo(map);
