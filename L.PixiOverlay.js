@@ -35,7 +35,10 @@
 			// @option doubleBuffering: Boolean
 			// Help to prevent flicker when refreshing display on some devices (e.g. iOS devices)
 			// It is ignored if rendering is done with 2d-canvas
-			doubleBuffering: false
+			doubleBuffering: false,
+			// @option resolution: Number = 1
+			// Resolution of the renderer canvas
+			resolution: L.Browser.retina ? 2 : 1
 		},
 
 		initialize: function (drawCallback, pixiContainer, options) {
@@ -45,7 +48,7 @@
 			this._pixiContainer = pixiContainer;
 			this._rendererOptions = {
 				transparent: true,
-				resolution: L.Browser.retina ? 2 : 1,
+				resolution: this.options.resolution,
 				antialias: true,
 				forceCanvas: this.options.forceCanvas
 			};
