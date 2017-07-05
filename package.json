@@ -2,7 +2,7 @@
   "name": "leaflet-pixi-overlay",
   "description": "Leaflet Plugin: Pixi.js Overlay",
   "author": "Manuel Baclet <mbaclet@gmail.com>",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "main": "L.PixiOverlay.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

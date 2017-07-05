@@ -164,6 +164,7 @@ available fields:
  * `padding` - (number; defaults to `0.1`) How much to extend the drawing area around the map view (relative to its size).
  * `forceCanvas` - (bool; defaults to `false`) Force use of a 2d-canvas for rendering.
  * `doubleBuffering` - (bool; default to `false`) Activate double buffering to prevent flicker when refreshing display on some devices (e.g. iOS devices). This field is ignored if rendering is done with 2d-canvas.
+ * `resolution` - (number; defaults to `2` on retina devices and `1` elsewhere) Resolution of the renderer.
 
 *Utils object*
 
