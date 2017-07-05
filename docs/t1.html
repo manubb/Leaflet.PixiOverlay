@@ -145,6 +145,9 @@
 				var alphaScale = d3.scaleLinear()
 					.domain([0, 0.35, 1])
 					.range([0, 0.8, 0.9]);
+				var meshAlphaScale = d3.scaleLinear()
+					.domain([2, 12])
+					.range([0, 0.9]);
 				var pixiContainer = new PIXI.Graphics();
 				var panneau2color = {
 					'0': 0xffffff,
@@ -195,6 +198,7 @@
 				var focus = null;
 				var barbiche = Barbiche();
 				var forceCanvas = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+				var mesh = new PIXI.Graphics();
 				return L.pixiOverlay(function(utils) {
 					var zoom = utils.getMap().getZoom();
 					var container = utils.getContainer();
@@ -291,7 +295,6 @@
 								feature: feature
 							});
 						});
-						var mesh = new PIXI.Graphics();
 						container.addChild(mesh);
 						mesh.lineStyle(2 / utils.getScale(12), 0x0, 0.8);
 						interiors.coordinates.forEach(function(path) {
@@ -428,6 +431,7 @@
 						}).addTo(utils.getMap());
 					}
 					firstDraw = false;
+					mesh.alpha = meshAlphaScale(zoom);
 					prevZoom = zoom;
 					renderer.render(container);
 				}, pixiContainer, {
