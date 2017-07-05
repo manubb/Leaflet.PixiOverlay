@@ -173,11 +173,13 @@
 					var zoom = utils.getMap().getZoom();
 					var container = utils.getContainer();
 					var renderer = utils.getRenderer();
+					var gl = renderer.gl;
 					var project = utils.latLngToLayerPoint;
 					var scale = utils.getScale();
 					var invScale = 1 / scale;
 					if (firstDraw) {
 						if (renderer.type === PIXI.RENDERER_TYPE.WEBGL) {
+							gl.blendFunc(gl.ONE, gl.ZERO);
 							document.querySelector('#webgl').style.display = 'block';
 						} else {
 							document.body.removeChild(document.querySelector('#webgl'));
