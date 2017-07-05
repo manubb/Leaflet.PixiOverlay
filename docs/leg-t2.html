@@ -190,6 +190,7 @@
 				}
 				var focus = null;
 				var barbiche = Barbiche();
+				var forceCanvas = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 				return L.pixiOverlay(function(utils) {
 					var zoom = utils.getMap().getZoom();
 					var container = utils.getContainer();
@@ -430,8 +431,9 @@
 					prevZoom = zoom;
 					renderer.render(container);
 				}, pixiContainer, {
+					resolution: (L.Browser.retina && !forceCanvas) ? 1.4 : 1,
 					padding: 0.2,
-					forceCanvas: /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
+					forceCanvas: forceCanvas
 				});
 			})();
 			pixiLayer.addTo(map);
