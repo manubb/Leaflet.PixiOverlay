@@ -134,8 +134,8 @@
 					.domain([0, 50, 100])
 					.range(["#c6233c", "#ffd300", "#008000"]);
 				var meshAlphaScale = d3.scaleLinear()
-					.domain([7, 12])
-					.range([0, 0.8]);
+					.domain([9, 12])
+					.range([0.5, 1]);
 				meshAlphaScale.clamp(true);
 				var pixiContainer = new PIXI.Graphics();
 				pixiContainer.alpha = 0.8;
@@ -408,6 +408,7 @@
 						}).addTo(utils.getMap());
 					}
 					firstDraw = false;
+					mesh.visible = (zoom >= 9);
 					mesh.alpha = meshAlphaScale(zoom);
 					prevZoom = zoom;
 					renderer.render(container);
