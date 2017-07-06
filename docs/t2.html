@@ -134,8 +134,9 @@
 					.domain([0, 50, 100])
 					.range(["#c6233c", "#ffd300", "#008000"]);
 				var meshAlphaScale = d3.scaleLinear()
-					.domain([2, 12])
-					.range([0, 0.9]);
+					.domain([7, 12])
+					.range([0, 0.8]);
+				meshAlphaScale.clamp(true);
 				var pixiContainer = new PIXI.Graphics();
 				pixiContainer.alpha = 0.8;
 				var colorScaleTour2 = d3.scaleLinear()
@@ -272,7 +273,7 @@
 							});
 						});
 						container.addChild(mesh);
-						mesh.lineStyle(2 / utils.getScale(12), 0x0, 0.8);
+						mesh.lineStyle(2 / utils.getScale(12), 0x0, 1);
 						interiors.coordinates.forEach(function(path) {
 							path.forEach(function(point, index) {
 								if (index === 0) mesh.moveTo(point[0], point[1]);
