@@ -146,6 +146,7 @@
 					.range(["#c6233c", "#ffd300", "#008000"]);
 				var pixiContainer = new PIXI.Graphics();
 				var mesh = new PIXI.Graphics();
+				var circMesh = new PIXI.Graphics();
 				var nuance2color = {
 					LR: 0x78bce0,
 					MDM: 0xfe9d00,
@@ -168,7 +169,10 @@
 				var alphaScale = d3.scaleLinear()
 					.domain([0, 0.3, 1])
 					.range([0, 0.6, 1]);
-
+				var meshAlphaScale = d3.scaleLinear()
+					.domain([9, 12])
+					.range([0.6, 1]);
+				meshAlphaScale.clamp(true);
 				var tree = window.tree = rbush();
 				function containsPoint(polygon, p) {
 					var inside = false,
@@ -288,18 +292,19 @@
 							});
 						});
 						pixiContainer.addChild(mesh);
-						mesh.lineStyle(2 / utils.getScale(12), 0x333333, 0.8);
+						pixiContainer.addChild(circMesh);
+						mesh.lineStyle(2 / utils.getScale(12), 0x333333, 1);
 						interiors.coordinates.forEach(function(path) {
 							path.forEach(function(point, index) {
 								if (index === 0) mesh.moveTo(point[0], point[1]);
 								else mesh.lineTo(point[0], point[1]);
 							});
 						});
-						mesh.lineStyle(4 / utils.getScale(12), 0x000000, 1);
+						circMesh.lineStyle(6 / utils.getScale(12), 0x000000, 1);
 						circs.coordinates.forEach(function(path) {
 							path.forEach(function(point, index) {
-								if (index === 0) mesh.moveTo(point[0], point[1]);
-								else mesh.lineTo(point[0], point[1]);
+								if (index === 0) circMesh.moveTo(point[0], point[1]);
+								else circMesh.lineTo(point[0], point[1]);
 							});
 						});
 						function findFeature(latlng) {
@@ -430,11 +435,12 @@
 						}).addTo(utils.getMap());
 					}
 					firstDraw = false;
+					mesh.visible = (zoom >= 9);
+					mesh.alpha = meshAlphaScale(zoom);
+					circMesh.alpha = meshAlphaScale(zoom);
 					prevZoom = zoom;
 					renderer.render(container);
 				}, pixiContainer, {
-					resolution: (L.Browser.retina && !forceCanvas) ? 1.4 : 1,
-					padding: 0.2,
 					forceCanvas: forceCanvas
 				});
 			})();
