@@ -176,10 +176,21 @@
 				container = this._container,
 				size = b.getSize();
 			L.DomUtil.setPosition(container, b.min);
-			if (this._renderer.width !== size.x || this._renderer.height !== size.y) {
+			if (!this._renderer.size || this._renderer.size.x !== size.x || this._renderer.size.y !== size.y) {
+				if (this._renderer.gl) {
+					this._renderer.resolution = this._renderer.rootRenderTarget.resolution = this.options.resolution;
+				}
 				this._renderer.resize(size.x, size.y);
 				view.style.width = size.x + 'px';
 				view.style.height = size.y + 'px';
+				if (this._renderer.gl) {
+					var gl = this._renderer.gl;
+					if (gl.drawingBufferWidth !== this._renderer.width) {
+						this._renderer.resolution = this._renderer.rootRenderTarget.resolution = this.options.resolution * gl.drawingBufferWidth / this._renderer.width;
+						this._renderer.resize(size.x, size.y);
+					}
+				}
+				this._renderer.size = size;
 			}
 			this._disableLeafletRounding();
 			var shift = this._map.latLngToLayerPoint(this._wgsOrigin)
