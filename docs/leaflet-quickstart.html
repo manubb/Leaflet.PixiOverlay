@@ -110,16 +110,20 @@
 						triangle.clear();
 						triangle.lineStyle(3 / scale, 0x3388ff, 1);
 						triangle.beginFill(0x3388ff, 0.2);
+						triangle.x = projectedPolygon[0].x;
+						triangle.y = projectedPolygon[0].y;
 						projectedPolygon.forEach(function(coords, index) {
-							if (index == 0) triangle.moveTo(coords.x, coords.y);
-							else triangle.lineTo(coords.x, coords.y);
+							if (index == 0) triangle.moveTo(0, 0);
+							else triangle.lineTo(coords.x - triangle.x, coords.y - triangle.y);
 						});
 						triangle.endFill();
 
 						circle.clear();
 						circle.lineStyle(3 / scale, 0xff0000, 1);
 						circle.beginFill(0xff0033, 0.5);
-						circle.drawCircle(projectedCenter.x, projectedCenter.y, circleRadius);
+						circle.x = projectedCenter.x;
+						circle.y = projectedCenter.y;
+						circle.drawCircle(0, 0, circleRadius);
 						circle.endFill();
 					}
 
