@@ -52,19 +52,15 @@
 
 		onAdd: function () {
 			if (!this._container) {
-				var container = this._container = document.createElement('div');
-				L.DomUtil.addClass(this._container, 'leaflet-pixi-overlay');
 				this._renderer = PIXI.autoDetectRenderer(this._rendererOptions);
 				container.appendChild(this._renderer.view);
 				if (this._zoomAnimated) {
-					// L.DomUtil.addClass(container, 'leaflet-image-layer');
 					L.DomUtil.addClass(container, 'leaflet-zoom-animated');
 				}
 			}
 			this.getPane().appendChild(this._container);
 
 			var map = this._map;
-			//some choices in next two lines
 			this._initialZoom = map.getMaxZoom();
 			this._wgsOrigin = L.latLng([0, 0]);
 			this._disableLeafletRounding();
@@ -142,6 +138,7 @@
 		},
 
 		_update: function (e) {
+			// is this really useful?
 			if (this._map._animatingZoom && this._bounds) {return;}
 
 			// Update pixel bounds of renderer container
