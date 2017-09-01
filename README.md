@@ -27,6 +27,8 @@ French presidential 2017 election results: [first round](https://manubb.github.i
 
 French legislative 2017 election results: [first round](https://manubb.github.io/Leaflet.PixiOverlay/leg-t1.html) and [second round](https://manubb.github.io/Leaflet.PixiOverlay/leg-t2.html) (36000 polygons).
 
+*[graph-draw](https://www.npmjs.com/package/graph-draw) is used to display boundaries in the election demos when rendered in WebGL*
+
 ## Usage
 
 Include Pixi.js and the PixiOverlay libraries:
