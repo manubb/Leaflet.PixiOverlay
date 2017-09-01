@@ -227,12 +227,6 @@
 
 						prevZoom = zoom;
 						geojson.features.forEach(function(feature) {
-							if (feature.properties.nom === 'Ploumoguer') {
-								console.log(JSON.stringify(feature.geometry.coordinates[0].map(function(point) {
-									var unproject = utils.layerPointToLatLng(point);
-									return [unproject.lng, unproject.lat];
-								})));
-							}
 							var alpha, color;
 							function drawPoly(poly) {
 								if (poly.length === 1) {
@@ -301,7 +295,6 @@
 							var point2index = {};
 							var vertices = [];
 							var edges = [];
-							var count = 0;
 							interiors.coordinates.forEach(function(arc) {
 								arc.forEach(function(point, index) {
 									var key = point[0] + '#' + point[1];
@@ -310,14 +303,12 @@
 										indexTo = point2index[key] = vertices.length;
 										vertices.push(point);
 									} else {
-										count++;
 										indexTo = point2index[key];
 									}
 									if (index > 0) {
 										var prevPoint = arc[index - 1];
 										var indexFrom = point2index[prevPoint[0] + '#' + prevPoint[1]];
-										if (indexFrom === indexTo) return console.log(indexFrom);
-										edges.push([indexTo, indexFrom]);
+										if (indexFrom !== indexTo) edges.push([indexTo, indexFrom]);
 									}
 								})
 							});
