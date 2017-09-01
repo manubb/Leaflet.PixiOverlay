@@ -67,7 +67,7 @@
 </div>
 <img id="webgl" src="img/WebGL_Logo.png" style="position: absolute; top: 20px; left: 20px; height: 50px; z-index: 600; pointer-events: none; display: none;" >
 <script>
-	var getJSON = function(url, successHandler, errorHandler) {
+	function getJSON(url, successHandler, errorHandler) {
 		var xhr = typeof XMLHttpRequest != 'undefined'
 			? new XMLHttpRequest()
 			: new ActiveXObject('Microsoft.XMLHTTP');
@@ -86,7 +86,7 @@
 			}
 		};
 		xhr.send();
-	};
+	}
 
 	document.addEventListener("DOMContentLoaded", function() {
 		getJSON('data/leg-t2.topojson', function(topo) {
@@ -99,7 +99,7 @@
 				subdomains: 'abcd',
 				attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
 				minZoom: 2,
-				maxZoom: 12
+				maxZoom: 18
 			}).addTo(map);
 			map.attributionControl.setPosition('bottomleft');
 			map.zoomControl.setPosition('bottomright');
@@ -210,19 +210,13 @@
 						} else {
 							document.body.removeChild(document.querySelector('#webgl'));
 						}
-						var transform = topo.transform;
 						topo.arcs.forEach(function(arc) {
-							var x = 0, y = 0;
 							arc.forEach(function(position) {
-								var proj = project([
-									(y += position[1]) * transform.scale[1] + transform.translate[1],
-									(x += position[0]) * transform.scale[0] + transform.translate[0]
-								]);
+								var proj = project([position[1], position[0]]);
 								position[0] = proj.x;
 								position[1] = proj.y;
 							});
 						});
-						delete topo.transform;
 						var geojson = topojson.feature(topo, topo.objects['leg-t2']);
 						var interiors = topojson.mesh(topo, topo.objects['leg-t2'], function(a, b) { return a !== b && a.properties.ref === b.properties.ref;});
 						var circs = topojson.mesh(topo, topo.objects['leg-t2'], function(a, b) { return a !== b && a.properties.ref !== b.properties.ref;});
@@ -293,20 +287,83 @@
 						});
 						pixiContainer.addChild(mesh);
 						pixiContainer.addChild(circMesh);
-						mesh.lineStyle(2 / utils.getScale(12), 0x333333, 1);
-						interiors.coordinates.forEach(function(path) {
-							path.forEach(function(point, index) {
-								if (index === 0) mesh.moveTo(point[0], point[1]);
-								else mesh.lineTo(point[0], point[1]);
+						if (renderer.type === PIXI.RENDERER_TYPE.WEBGL) {
+							var point2index = {};
+							var vertices = [];
+							var edges = [];
+							interiors.coordinates.forEach(function(arc) {
+								arc.forEach(function(point, index) {
+									var key = point[0] + '#' + point[1];
+									var indexTo;
+									if (!(key in point2index)) {
+										indexTo = point2index[key] = vertices.length;
+										vertices.push(point);
+									} else {
+										indexTo = point2index[key];
+									}
+									if (index > 0) {
+										var prevPoint = arc[index - 1];
+										var indexFrom = point2index[prevPoint[0] + '#' + prevPoint[1]];
+										if (indexFrom !== indexTo) edges.push([indexTo, indexFrom]);
+									}
+								})
 							});
-						});
-						circMesh.lineStyle(6 / utils.getScale(12), 0x000000, 1);
-						circs.coordinates.forEach(function(path) {
-							path.forEach(function(point, index) {
-								if (index === 0) circMesh.moveTo(point[0], point[1]);
-								else circMesh.lineTo(point[0], point[1]);
+							mesh.beginFill(0x333333, 1);
+							var triangles = graphDraw({vertices: vertices, edges: edges}, 2 / utils.getScale(12), 3 * Math.PI / 2);
+							triangles.forEach(function(poly) {
+								poly.forEach(function(point, index) {
+									if (index === 0) mesh.moveTo(point[0], point[1]);
+									else mesh.lineTo(point[0], point[1]);
+								});
+								mesh.closePath();
 							});
-						});
+
+							var point2index2 = {};
+							var vertices2 = [];
+							var edges2 = [];
+							circs.coordinates.forEach(function(arc) {
+								arc.forEach(function(point, index) {
+									var key = point[0] + '#' + point[1];
+									var indexTo;
+									if (!(key in point2index2)) {
+										indexTo = point2index2[key] = vertices2.length;
+										vertices2.push(point);
+									} else {
+										indexTo = point2index2[key];
+									}
+									if (index > 0) {
+										var prevPoint = arc[index - 1];
+										var indexFrom = point2index2[prevPoint[0] + '#' + prevPoint[1]];
+										edges2.push([indexTo, indexFrom]);
+									}
+								})
+							});
+							circMesh.beginFill(0, 1);
+							var triangles2 = graphDraw({vertices: vertices2, edges: edges2}, 6 / utils.getScale(12), 3 * Math.PI / 2);
+							triangles2.forEach(function(poly) {
+								poly.forEach(function(point, index) {
+									if (index === 0) circMesh.moveTo(point[0], point[1]);
+									else circMesh.lineTo(point[0], point[1]);
+								});
+								circMesh.closePath();
+							});
+						} else {
+							mesh.lineStyle(2 / utils.getScale(12), 0x333333, 1);
+							interiors.coordinates.forEach(function(path) {
+								path.forEach(function(point, index) {
+									if (index === 0) mesh.moveTo(point[0], point[1]);
+									else mesh.lineTo(point[0], point[1]);
+								});
+							});
+							circMesh.lineStyle(6 / utils.getScale(12), 0x000000, 1);
+							circs.coordinates.forEach(function(path) {
+								path.forEach(function(point, index) {
+									if (index === 0) circMesh.moveTo(point[0], point[1]);
+									else circMesh.lineTo(point[0], point[1]);
+								});
+							});
+						}
+
 						function findFeature(latlng) {
 							var point = project(latlng);
 							var features = tree.search({
