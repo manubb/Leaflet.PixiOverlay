@@ -164,6 +164,7 @@ available fields:
  * `padding` - (number; defaults to `0.1`) How much to extend the drawing area around the map view (relative to its size).
  * `forceCanvas` - (bool; defaults to `false`) Force use of a 2d-canvas for rendering.
  * `resolution` - (number; defaults to `2` on retina devices and `1` elsewhere) Resolution of the renderer.
+ * `projectionZoom` - (function(map): Number; defaults to function that returns the average of `map.getMinZoom()` and `map.getMaxZoom()`) returns the projection zoom level. Customizing this option can help if you experience visual artifacts.
 
 *Utils object*
 

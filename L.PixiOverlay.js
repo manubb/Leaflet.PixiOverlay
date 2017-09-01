@@ -34,7 +34,10 @@
 			forceCanvas: false,
 			// @option resolution: Number = 1
 			// Resolution of the renderer canvas
-			resolution: L.Browser.retina ? 2 : 1
+			resolution: L.Browser.retina ? 2 : 1,
+			// @option projectionZoom(map: map): Number
+			// return the layer projection zoom level
+			projectionZoom: function(map) {return (map.getMaxZoom() + map.getMinZoom()) / 2;}
 		},
 
 		initialize: function (drawCallback, pixiContainer, options) {
@@ -52,6 +55,7 @@
 
 		onAdd: function () {
 			if (!this._container) {
+				var container = this._container = L.DomUtil.create('div', 'leaflet-pixi-overlay');
 				this._renderer = PIXI.autoDetectRenderer(this._rendererOptions);
 				container.appendChild(this._renderer.view);
 				if (this._zoomAnimated) {
@@ -61,7 +65,7 @@
 			this.getPane().appendChild(this._container);
 
 			var map = this._map;
-			this._initialZoom = map.getMaxZoom();
+			this._initialZoom = this.options.projectionZoom(map);
 			this._wgsOrigin = L.latLng([0, 0]);
 			this._disableLeafletRounding();
 			this._wgsInitialShift = map.project(this._wgsOrigin, this._initialZoom);
