@@ -65,7 +65,7 @@
 </div>
 <img id="webgl" src="img/WebGL_Logo.png" style="position: absolute; top: 20px; left: 20px; height: 50px; z-index: 600; pointer-events: none; display: none;" >
 <script>
-	var getJSON = function(url, successHandler, errorHandler) {
+	function getJSON(url, successHandler, errorHandler) {
 		var xhr = typeof XMLHttpRequest != 'undefined'
 			? new XMLHttpRequest()
 			: new ActiveXObject('Microsoft.XMLHTTP');
@@ -84,7 +84,7 @@
 			}
 		};
 		xhr.send();
-	};
+	}
 
 	document.addEventListener("DOMContentLoaded", function() {
 		getJSON('data/tour1.topojson', function(topo) {
@@ -215,24 +215,24 @@
 						} else {
 							document.body.removeChild(document.querySelector('#webgl'));
 						}
-						var transform = topo.transform;
 						topo.arcs.forEach(function(arc) {
-							var x = 0, y = 0;
 							arc.forEach(function(position) {
-								var proj = project([
-									(y += position[1]) * transform.scale[1] + transform.translate[1],
-									(x += position[0]) * transform.scale[0] + transform.translate[0]
-								]);
+								var proj = project([position[1], position[0]]);
 								position[0] = proj.x;
 								position[1] = proj.y;
 							});
 						});
-						delete topo.transform;
 						var geojson = topojson.feature(topo, topo.objects.tour1);
 						var interiors = topojson.mesh(topo, topo.objects.tour1, function(a, b) { return a !== b; });
 
 						prevZoom = zoom;
 						geojson.features.forEach(function(feature) {
+							if (feature.properties.nom === 'Ploumoguer') {
+								console.log(JSON.stringify(feature.geometry.coordinates[0].map(function(point) {
+									var unproject = utils.layerPointToLatLng(point);
+									return [unproject.lng, unproject.lat];
+								})));
+							}
 							var alpha, color;
 							function drawPoly(poly) {
 								if (poly.length === 1) {
@@ -297,13 +297,49 @@
 							});
 						});
 						container.addChild(mesh);
-						mesh.lineStyle(2 / utils.getScale(12), 0x0, 1);
-						interiors.coordinates.forEach(function(path) {
-							path.forEach(function(point, index) {
-								if (index === 0) mesh.moveTo(point[0], point[1]);
-								else mesh.lineTo(point[0], point[1]);
+						if (renderer.type === PIXI.RENDERER_TYPE.WEBGL) {
+							var point2index = {};
+							var vertices = [];
+							var edges = [];
+							var count = 0;
+							interiors.coordinates.forEach(function(arc) {
+								arc.forEach(function(point, index) {
+									var key = point[0] + '#' + point[1];
+									var indexTo;
+									if (!(key in point2index)) {
+										indexTo = point2index[key] = vertices.length;
+										vertices.push(point);
+									} else {
+										count++;
+										indexTo = point2index[key];
+									}
+									if (index > 0) {
+										var prevPoint = arc[index - 1];
+										var indexFrom = point2index[prevPoint[0] + '#' + prevPoint[1]];
+										if (indexFrom === indexTo) return console.log(indexFrom);
+										edges.push([indexTo, indexFrom]);
+									}
+								})
 							});
-						});
+							var triangles = graphDraw({vertices: vertices, edges: edges}, 2 / utils.getScale(12), 3 * Math.PI / 2);
+							mesh.beginFill(0x0);
+							triangles.forEach(function(poly) {
+								poly.forEach(function(point, index) {
+									if (index === 0) mesh.moveTo(point[0], point[1]);
+									else mesh.lineTo(point[0], point[1]);
+								});
+								mesh.closePath();
+							});
+						} else {
+							mesh.lineStyle(2 / utils.getScale(12), 0x0, 1);
+							interiors.coordinates.forEach(function(path) {
+								path.forEach(function(point, index) {
+									if (index === 0) mesh.moveTo(point[0], point[1]);
+									else mesh.lineTo(point[0], point[1]);
+								});
+							});
+						}
+
 						function findFeature(latlng) {
 							var point = project(latlng);
 							var features = tree.search({
