@@ -56,6 +56,46 @@
 </div>
 <img id="webgl" src="img/WebGL_Logo.png" style="position: absolute; top: 20px; left: 20px; height: 50px; z-index: 600; pointer-events: none; display: none;" >
 <script>
+	// patch WebGL PIXI.mesh.MeshRenderer
+	var _pixiGlCore2 = PIXI.glCore;
+	PIXI.mesh.MeshRenderer.prototype.onContextChange = function onContextChange() {
+		var gl = this.renderer.gl;
+
+		this.shader = new PIXI.Shader(gl, 'attribute vec2 aVertexPosition;\n\nuniform mat3 projectionMatrix;\nuniform mat3 translationMatrix;\n\nvoid main(void)\n{\n    gl_Position = vec4((projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);\n}\n', 'uniform vec4 uColor;\n\nvoid main(void)\n{\n    gl_FragColor = uColor;\n}\n');
+	};
+
+	PIXI.mesh.MeshRenderer.prototype.render = function render(mesh) {
+		var renderer = this.renderer;
+		var gl = renderer.gl;
+		var glData = mesh._glDatas[renderer.CONTEXT_UID];
+
+		if (!glData) {
+			renderer.bindVao(null);
+
+			glData = {
+				shader: this.shader,
+				vertexBuffer: _pixiGlCore2.GLBuffer.createVertexBuffer(gl, mesh.vertices, gl.STREAM_DRAW),
+				indexBuffer: _pixiGlCore2.GLBuffer.createIndexBuffer(gl, mesh.indices, gl.STATIC_DRAW)
+			};
+
+			// build the vao object that will render..
+			glData.vao = new _pixiGlCore2.VertexArrayObject(gl)
+				.addIndex(glData.indexBuffer)
+				.addAttribute(glData.vertexBuffer, glData.shader.attributes.aVertexPosition, gl.FLOAT, false, 2 * 4, 0);
+
+			mesh._glDatas[renderer.CONTEXT_UID] = glData;
+		}
+
+		renderer.bindVao(glData.vao);
+
+		renderer.bindShader(glData.shader);
+
+		glData.shader.uniforms.translationMatrix = mesh.worldTransform.toArray(true);
+
+		glData.shader.uniforms.uColor = PIXI.utils.premultiplyRgba(mesh.tintRgb, mesh.worldAlpha, glData.shader.uniforms.uColor);
+
+		glData.vao.draw(gl.TRIANGLE_STRIP, mesh.indices.length, 0);
+	};
 	function getJSON(url, successHandler, errorHandler) {
 		var xhr = typeof XMLHttpRequest != 'undefined'
 			? new XMLHttpRequest()
@@ -154,7 +194,7 @@
 				var tree = window.tree = rbush();
 				function containsPoint(polygon, p) {
 					var inside = false,
-					    part, p1, p2, i, j, k, len, len2;
+						part, p1, p2, i, j, k, len, len2;
 					// ray casting algorithm for detecting if point is in polygon
 					for (i = 0, len = polygon.length; i < len; i++) {
 						part = polygon[i];
@@ -173,7 +213,7 @@
 				var focus = null;
 				var barbiche = Barbiche();
 				var forceCanvas = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-				var mesh = new PIXI.Graphics();
+				var mesh;
 				return L.pixiOverlay(function(utils) {
 					var zoom = utils.getMap().getZoom();
 					var container = utils.getContainer();
@@ -266,8 +306,9 @@
 								feature: feature
 							});
 						});
-						container.addChild(mesh);
+
 						if (renderer.type === PIXI.RENDERER_TYPE.WEBGL) {
+							mesh = new PIXI.Container();
 							var point2index = {};
 							var vertices = [];
 							var edges = [];
@@ -288,16 +329,50 @@
 									}
 								})
 							});
-							var triangles = graphDraw({vertices: vertices, edges: edges}, 2 / utils.getScale(12), 3 * Math.PI / 2);
-							mesh.beginFill(0x0);
-							triangles.forEach(function(poly) {
-								poly.forEach(function(point, index) {
-									if (index === 0) mesh.moveTo(point[0], point[1]);
-									else mesh.lineTo(point[0], point[1]);
+							var memo = Object.create(null);
+							var newIndex = 0;
+							var meshVertices = [];
+							var meshIndices = [];
+							var iMax, iMin;
+							function meshCreate(meshVertices, meshIndices) {
+								var partialMesh = new PIXI.mesh.Mesh(null, new Float32Array(meshVertices), null, new Uint16Array(meshIndices));
+								partialMesh.tint = 0x0;
+								mesh.addChild(partialMesh);
+							}
+							function cb(triangle) {
+								if (newIndex > 60000) {
+									memo = Object.create(null);
+									meshCreate(meshVertices, meshIndices);
+									newIndex = 0;
+									meshVertices = [];
+									meshIndices = [];
+								}
+								var indices = triangle.map(function(point) {
+									var key = point[0] + '#' + point[1];
+									var index = memo[key];
+									if (index !== undefined) return index;
+									else {
+										var index = memo[key] = newIndex++;
+										meshVertices.push(point[0], point[1]);
+										return index;
+									}
 								});
-								mesh.closePath();
-							});
+								iMax = triangle.length - 1;
+								iMin = 0;
+								meshIndices.push(indices[iMax]);
+								while(iMax - iMin >= 2) {
+									meshIndices.push(indices[iMax--], indices[iMin++]);
+								}
+								if (iMax === iMin) {
+									meshIndices.push(indices[iMax], indices[iMax]);
+								} else meshIndices.push(indices[iMax], indices[iMin], indices[iMin]);
+							}
+
+
+							graphDraw({vertices: vertices, edges: edges}, 2 / utils.getScale(12), cb, 3 * Math.PI / 2);
+							meshCreate(meshVertices, meshIndices);
 						} else {
+							mesh = new PIXI.Graphics();
 							mesh.lineStyle(2 / utils.getScale(12), 0x0, 1);
 							interiors.coordinates.forEach(function(path) {
 								path.forEach(function(point, index) {
@@ -306,6 +381,8 @@
 								});
 							});
 						}
+
+						container.addChild(mesh);
 
 						function findFeature(latlng) {
 							var point = project(latlng);
