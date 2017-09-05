@@ -191,7 +191,7 @@
 					'1': 'M. Emmanuel MACRON',
 					'2': 'Mme Marine LE PEN'
 				};
-				var tree = window.tree = rbush();
+				var tree = rbush();
 				function containsPoint(polygon, p) {
 					var inside = false,
 						part, p1, p2, i, j, k, len, len2;
@@ -339,7 +339,7 @@
 								partialMesh.tint = 0x0;
 								mesh.addChild(partialMesh);
 							}
-							function cb(triangle) {
+							function cb(polygon) {
 								if (newIndex > 60000) {
 									memo = Object.create(null);
 									meshCreate(meshVertices, meshIndices);
@@ -347,7 +347,7 @@
 									meshVertices = [];
 									meshIndices = [];
 								}
-								var indices = triangle.map(function(point) {
+								var indices = polygon.map(function(point) {
 									var key = point[0] + '#' + point[1];
 									var index = memo[key];
 									if (index !== undefined) return index;
@@ -357,7 +357,7 @@
 										return index;
 									}
 								});
-								iMax = triangle.length - 1;
+								iMax = polygon.length - 1;
 								iMin = 0;
 								meshIndices.push(indices[iMax]);
 								while(iMax - iMin >= 2) {
