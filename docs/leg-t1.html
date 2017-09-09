@@ -180,7 +180,6 @@
 			var pixiLayer = (function() {
 				var firstDraw = true;
 				var prevZoom;
-				var cities = [];
 				var colorScale = d3.scaleLinear()
 					.domain([0, 50, 100])
 					.range(["#c6233c", "#ffd300", "#008000"]);
@@ -259,6 +258,7 @@
 						var geojson = topojson.feature(topo, topo.objects['leg-t1']);
 						var interiors = topojson.mesh(topo, topo.objects['leg-t1'], function(a, b) { return a !== b && a.properties.ref === b.properties.ref;});
 						var circs = topojson.mesh(topo, topo.objects['leg-t1'], function(a, b) { return a !== b && a.properties.ref !== b.properties.ref;});
+						topo = null;
 
 						prevZoom = zoom;
 						geojson.features.forEach(function(feature) {
@@ -270,7 +270,6 @@
 									});
 									var shape = new PIXI.Polygon(coords);
 									shape.close();
-									cities.push(shape);
 									container.beginFill(color, alpha);
 									container.drawShape(shape);
 								} else {
@@ -289,7 +288,6 @@
 										drawing.closePath();
 										drawing.addHole();
 									}
-									cities.push(drawing);
 									container.addChild(drawing);
 								}
 							}
