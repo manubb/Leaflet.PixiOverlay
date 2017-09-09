@@ -178,7 +178,6 @@
 			var pixiLayer = (function() {
 				var firstDraw = true;
 				var prevZoom;
-				var cities = [];
 				var colorScale = d3.scaleLinear()
 					.domain([0, 50, 100])
 					.range(["#c6233c", "#ffd300", "#008000"]);
@@ -217,7 +216,7 @@
 					'10': 'M. François ASSELINEAU',
 					'11': 'M. François FILLON'
 				};
-				var tree = window.tree = rbush();
+				var tree = rbush();
 				function containsPoint(polygon, p) {
 					var inside = false,
 						part, p1, p2, i, j, k, len, len2;
@@ -248,292 +247,297 @@
 					var project = utils.latLngToLayerPoint;
 					var scale = utils.getScale();
 					var invScale = 1 / scale;
+					var self = this;
 					if (firstDraw) {
-						if (renderer.type === PIXI.RENDERER_TYPE.WEBGL) {
-							gl.blendFunc(gl.ONE, gl.ZERO);
-							document.querySelector('#webgl').style.display = 'block';
-						} else {
-							document.body.removeChild(document.querySelector('#webgl'));
-						}
-						topo.arcs.forEach(function(arc) {
-							arc.forEach(function(position) {
-								var proj = project([position[1], position[0]]);
-								position[0] = proj.x;
-								position[1] = proj.y;
+						(function() {
+							if (renderer.type === PIXI.RENDERER_TYPE.WEBGL) {
+								gl.blendFunc(gl.ONE, gl.ZERO);
+								document.querySelector('#webgl').style.display = 'block';
+							} else {
+								document.body.removeChild(document.querySelector('#webgl'));
+							}
+							topo.arcs.forEach(function(arc) {
+								arc.forEach(function(position) {
+									var proj = project([position[1], position[0]]);
+									position[0] = proj.x;
+									position[1] = proj.y;
+								});
 							});
-						});
-						var geojson = topojson.feature(topo, topo.objects.tour1);
-						var interiors = topojson.mesh(topo, topo.objects.tour1, function(a, b) { return a !== b; });
+							var geojson = topojson.feature(topo, topo.objects.tour1);
+							var interiors = topojson.mesh(topo, topo.objects.tour1, function(a, b) { return a !== b; });
+							topo = null;
 
-						prevZoom = zoom;
-						geojson.features.forEach(function(feature) {
-							var alpha, color;
-							function drawPoly(poly) {
-								if (poly.length === 1) {
-									var coords = poly[0].map(function(point) {
-										return new PIXI.Point(point[0], point[1]);
-									});
-									var shape = new PIXI.Polygon(coords);
-									shape.close();
-									cities.push(shape);
-									container.beginFill(color, alpha);
-									container.drawShape(shape);
-								} else {
-									var drawing = new PIXI.Graphics();
-									drawing.beginFill(color, alpha);
-									poly[0].forEach(function(point, index) {
-										if (index === 0) drawing.moveTo(point[0], point[1]);
-										else drawing.lineTo(point[0], point[1]);
-									});
-									drawing.closePath();
-									for (var i = 1; i < poly.length; i++) {
-										poly[i].forEach(function(point, index) {
+							prevZoom = zoom;
+							geojson.features.forEach(function(feature) {
+								var alpha, color;
+								function drawPoly(poly) {
+									if (poly.length === 1) {
+										var coords = poly[0].map(function(point) {
+											return new PIXI.Point(point[0], point[1]);
+										});
+										var shape = new PIXI.Polygon(coords);
+										shape.close();
+										container.beginFill(color, alpha);
+										container.drawShape(shape);
+									} else {
+										var drawing = new PIXI.Graphics();
+										drawing.beginFill(color, alpha);
+										poly[0].forEach(function(point, index) {
 											if (index === 0) drawing.moveTo(point[0], point[1]);
 											else drawing.lineTo(point[0], point[1]);
 										});
 										drawing.closePath();
-										drawing.addHole();
+										for (var i = 1; i < poly.length; i++) {
+											poly[i].forEach(function(point, index) {
+												if (index === 0) drawing.moveTo(point[0], point[1]);
+												else drawing.lineTo(point[0], point[1]);
+											});
+											drawing.closePath();
+											drawing.addHole();
+										}
+										container.addChild(drawing);
 									}
-									cities.push(drawing);
-									container.addChild(drawing);
 								}
-							}
-							var res = feature.properties.res;
-							if (res !== undefined) {
-								color = panneau2color[res.num || 0];
-								alpha = alphaScale(res.ratio || 0.5);
-							} else {
-								var tint = d3.color(colorScale(Math.random() * 100)).rgb();
-								color = 256 * (tint.r * 256 + tint.g) + tint.b;
-								alpha = 0.8;
-							}
-							var bounds;
-							if (feature.geometry.type === 'Polygon') {
-								bounds = L.bounds(feature.geometry.coordinates[0]);
-								drawPoly(feature.geometry.coordinates);
-							} else if (feature.geometry.type == 'MultiPolygon') {
-								feature.geometry.coordinates.forEach(drawPoly);
-								feature.geometry.coordinates.forEach(function(poly, index) {
-									if (index === 0) bounds = L.bounds(poly[0]);
-									else {
-										poly[0].forEach(function(point) {
-											bounds.extend(point);
-										});
-									}
-								});
-							}
-							tree.insert({
-								minX: bounds.min.x,
-								minY: bounds.min.y,
-								maxX: bounds.max.x,
-								maxY: bounds.max.y,
-								feature: feature
-							});
-						});
-
-						if (renderer.type === PIXI.RENDERER_TYPE.WEBGL) {
-							mesh = new PIXI.Container();
-							var point2index = {};
-							var vertices = [];
-							var edges = [];
-							interiors.coordinates.forEach(function(arc) {
-								arc.forEach(function(point, index) {
-									var key = point[0] + '#' + point[1];
-									var indexTo;
-									if (!(key in point2index)) {
-										indexTo = point2index[key] = vertices.length;
-										vertices.push(point);
-									} else {
-										indexTo = point2index[key];
-									}
-									if (index > 0) {
-										var prevPoint = arc[index - 1];
-										var indexFrom = point2index[prevPoint[0] + '#' + prevPoint[1]];
-										if (indexFrom !== indexTo) edges.push([indexTo, indexFrom]);
-									}
-								})
-							});
-							var memo = Object.create(null);
-							var newIndex = 0;
-							var meshVertices = [];
-							var meshIndices = [];
-							var iMax, iMin;
-							function meshCreate(meshVertices, meshIndices) {
-								var partialMesh = new PIXI.mesh.Mesh(null, new Float32Array(meshVertices), null, new Uint16Array(meshIndices));
-								partialMesh.tint = 0x0;
-								mesh.addChild(partialMesh);
-							}
-							function cb(triangle) {
-								if (newIndex > 60000) {
-									memo = Object.create(null);
-									meshCreate(meshVertices, meshIndices);
-									newIndex = 0;
-									meshVertices = [];
-									meshIndices = [];
-								}
-								var indices = triangle.map(function(point) {
-									var key = point[0] + '#' + point[1];
-									var index = memo[key];
-									if (index !== undefined) return index;
-									else {
-										var index = memo[key] = newIndex++;
-										meshVertices.push(point[0], point[1]);
-										return index;
-									}
-								});
-								iMax = triangle.length - 1;
-								iMin = 0;
-								meshIndices.push(indices[iMax]);
-								while(iMax - iMin >= 2) {
-									meshIndices.push(indices[iMax--], indices[iMin++]);
-								}
-								if (iMax === iMin) {
-									meshIndices.push(indices[iMax], indices[iMax]);
-								} else meshIndices.push(indices[iMax], indices[iMin], indices[iMin]);
-							}
-
-
-							graphDraw({vertices: vertices, edges: edges}, 2 / utils.getScale(12), cb, 3 * Math.PI / 2);
-							meshCreate(meshVertices, meshIndices);
-						} else {
-							mesh = new PIXI.Graphics();
-							mesh.lineStyle(2 / utils.getScale(12), 0x0, 1);
-							interiors.coordinates.forEach(function(path) {
-								path.forEach(function(point, index) {
-									if (index === 0) mesh.moveTo(point[0], point[1]);
-									else mesh.lineTo(point[0], point[1]);
-								});
-							});
-						}
-
-						container.addChild(mesh);
-
-						function findFeature(latlng) {
-							var point = project(latlng);
-							var features = tree.search({
-								minX: point.x,
-								minY: point.y,
-								maxX: point.x,
-								maxY: point.y
-							});
-							for (var i = 0; i < features.length; i++) {
-								var feat = features[i].feature;
-								if (feat.geometry.type === 'Polygon') {
-									if (containsPoint(feat.geometry.coordinates, point)) return feat;
+								var res = feature.properties.res;
+								if (res !== undefined) {
+									color = panneau2color[res.num || 0];
+									alpha = alphaScale(res.ratio || 0.5);
 								} else {
-									for (var j = 0; j < feat.geometry.coordinates.length; j++) {
-										var ring = feat.geometry.coordinates[j];
-										if (containsPoint(ring, point)) return feat;
+									var tint = d3.color(colorScale(Math.random() * 100)).rgb();
+									color = 256 * (tint.r * 256 + tint.g) + tint.b;
+									alpha = 0.8;
+								}
+								var bounds;
+								if (feature.geometry.type === 'Polygon') {
+									bounds = L.bounds(feature.geometry.coordinates[0]);
+									drawPoly(feature.geometry.coordinates);
+								} else if (feature.geometry.type == 'MultiPolygon') {
+									feature.geometry.coordinates.forEach(drawPoly);
+									feature.geometry.coordinates.forEach(function(poly, index) {
+										if (index === 0) bounds = L.bounds(poly[0]);
+										else {
+											poly[0].forEach(function(point) {
+												bounds.extend(point);
+											});
+										}
+									});
+								}
+								tree.insert({
+									minX: bounds.min.x,
+									minY: bounds.min.y,
+									maxX: bounds.max.x,
+									maxY: bounds.max.y,
+									feature: feature
+								});
+							});
+							geojson = null;
+
+							if (renderer.type === PIXI.RENDERER_TYPE.WEBGL) {
+								(function() {
+									mesh = new PIXI.Container();
+									var point2index = {};
+									var vertices = [];
+									var edges = [];
+									interiors.coordinates.forEach(function(arc) {
+										arc.forEach(function(point, index) {
+											var key = point[0] + '#' + point[1];
+											var indexTo;
+											if (!(key in point2index)) {
+												indexTo = point2index[key] = vertices.length;
+												vertices.push(point);
+											} else {
+												indexTo = point2index[key];
+											}
+											if (index > 0) {
+												var prevPoint = arc[index - 1];
+												var indexFrom = point2index[prevPoint[0] + '#' + prevPoint[1]];
+												if (indexFrom !== indexTo) edges.push([indexTo, indexFrom]);
+											}
+										})
+									});
+									var memo = Object.create(null);
+									var newIndex = 0;
+									var meshVertices = [];
+									var meshIndices = [];
+									var iMax, iMin;
+									function meshCreate(meshVertices, meshIndices) {
+										var partialMesh = new PIXI.mesh.Mesh(null, new Float32Array(meshVertices), null, new Uint16Array(meshIndices));
+										partialMesh.tint = 0x0;
+										mesh.addChild(partialMesh);
+									}
+									function cb(polygon) {
+										if (newIndex > 60000) {
+											memo = Object.create(null);
+											meshCreate(meshVertices, meshIndices);
+											newIndex = 0;
+											meshVertices = [];
+											meshIndices = [];
+										}
+										var indices = polygon.map(function(point) {
+											var key = point[0] + '#' + point[1];
+											var index = memo[key];
+											if (index !== undefined) return index;
+											else {
+												var index = memo[key] = newIndex++;
+												meshVertices.push(point[0], point[1]);
+												return index;
+											}
+										});
+										iMax = polygon.length - 1;
+										iMin = 0;
+										meshIndices.push(indices[iMax]);
+										while(iMax - iMin >= 2) {
+											meshIndices.push(indices[iMax--], indices[iMin++]);
+										}
+										if (iMax === iMin) {
+											meshIndices.push(indices[iMax], indices[iMax]);
+										} else meshIndices.push(indices[iMax], indices[iMin], indices[iMin]);
+									}
+
+
+									graphDraw({vertices: vertices, edges: edges}, 2 / utils.getScale(12), cb, 3 * Math.PI / 2);
+									meshCreate(meshVertices, meshIndices);
+								})();
+							} else {
+								mesh = new PIXI.Graphics();
+								mesh.lineStyle(2 / utils.getScale(12), 0x0, 1);
+								interiors.coordinates.forEach(function(path) {
+									path.forEach(function(point, index) {
+										if (index === 0) mesh.moveTo(point[0], point[1]);
+										else mesh.lineTo(point[0], point[1]);
+									});
+								});
+							}
+							interiors = null;
+
+							container.addChild(mesh);
+
+							function findFeature(latlng) {
+								var point = project(latlng);
+								var features = tree.search({
+									minX: point.x,
+									minY: point.y,
+									maxX: point.x,
+									maxY: point.y
+								});
+								for (var i = 0; i < features.length; i++) {
+									var feat = features[i].feature;
+									if (feat.geometry.type === 'Polygon') {
+										if (containsPoint(feat.geometry.coordinates, point)) return feat;
+									} else {
+										for (var j = 0; j < feat.geometry.coordinates.length; j++) {
+											var ring = feat.geometry.coordinates[j];
+											if (containsPoint(ring, point)) return feat;
+										}
 									}
 								}
 							}
-						}
-						function focusFeature(feat) {
-							if (focus) focus.removeFrom(utils.getMap());
-							if (feat) {
-								if (feat.properties.res) {
-									focus = L.geoJSON(feat, {
-										coordsToLatLng: utils.layerPointToLatLng,
-										style: function (feature) {
-											return {
-												fillColor: '#fff',
-												fillOpacity: 0.7,
-												stroke: false
-											};
-										},
-										interactive: false
-									});
-									focus.addTo(utils.getMap());
-									var insee = feat.properties.insee;
-									var dpt;
-									if (insee[0] === '9' && insee[1] === '7') {
-										dpt = insee.substring(0, 3);
+							function focusFeature(feat) {
+								if (focus) focus.removeFrom(utils.getMap());
+								if (feat) {
+									if (feat.properties.res) {
+										focus = L.geoJSON(feat, {
+											coordsToLatLng: utils.layerPointToLatLng,
+											style: function (feature) {
+												return {
+													fillColor: '#fff',
+													fillOpacity: 0.7,
+													stroke: false
+												};
+											},
+											interactive: false
+										});
+										focus.addTo(utils.getMap());
+										var insee = feat.properties.insee;
+										var dpt;
+										if (insee[0] === '9' && insee[1] === '7') {
+											dpt = insee.substring(0, 3);
+										} else {
+											dpt = '0' + insee.substring(0, 2);
+										}
+										getJSON('data/t1/' + dpt + '/' + feat.properties.insee + '.json', function(data) {
+											var merged = barbiche('details').merge({
+												panneau2candidate: panneau2candidate,
+												panneau2color: panneau2color,
+												getRatio: function(a, b) {return Math.round(a * 10000 / b) / 100;},
+												fill: function(str) {
+													if (str.length < 6) {
+														return (new Array(6 - str.length + 1)).join('0') + str;
+													} else return str;
+												}
+											}, data);
+											legendContent.innerHTML = '';
+											legendContent.appendChild(merged);
+											L.DomUtil.removeClass(legend, 'hide');
+										});
 									} else {
-										dpt = '0' + insee.substring(0, 2);
-									}
-									getJSON('data/t1/' + dpt + '/' + feat.properties.insee + '.json', function(data) {
-										var merged = barbiche('details').merge({
-											panneau2candidate: panneau2candidate,
-											panneau2color: panneau2color,
-											getRatio: function(a, b) {return Math.round(a * 10000 / b) / 100;},
-											fill: function(str) {
-												if (str.length < 6) {
-													return (new Array(6 - str.length + 1)).join('0') + str;
-												} else return str;
-											}
-										}, data);
-										legendContent.innerHTML = '';
-										legendContent.appendChild(merged);
-										L.DomUtil.removeClass(legend, 'hide');
-									});
+										focus = null;
+										L.DomUtil.addClass(legend, 'hide');
+									};
 								} else {
 									focus = null;
 									L.DomUtil.addClass(legend, 'hide');
-								};
-							} else {
-								focus = null;
-								L.DomUtil.addClass(legend, 'hide');
+								}
 							}
-						}
-						utils.getMap().on('click', function(e) {
-							var feat = findFeature(e.latlng);
-							focusFeature(feat);
-						});
-						var self = this;
-						utils.getMap().on('mousemove', L.Util.throttle(function(e) {
-							var feat = findFeature(e.latlng);
-							if (feat && feat.properties.res) {
-								L.DomUtil.addClass(self._container, 'leaflet-interactive');
-							} else {
-								L.DomUtil.removeClass(self._container, 'leaflet-interactive');
-							}
-						}, 32));
-						legendContent.addEventListener('click', function(e) {
-							e.stopPropagation();
-							var target = e.target;
-							if (L.DomUtil.hasClass(target, 'close')) {
-								focus.removeFrom(utils.getMap());
-								focus = null;
-								L.DomUtil.addClass(legend, 'hide');
-							}
-						});
-						L.control.photon({
-							url: API_URL + '/search/?type=municipality&&',
-							placeholder: 'Rechercher une commune',
-							position: 'topright',
-							minChar: function (val) {
-								return SHORT_CITY_NAMES.indexOf(val) !== -1 || val.length >= 3;
-							},
-							feedbackEmail: null,
-							noResultLabel: 'Aucun résultat',
-							formatResult: function (feature, el) {
-								var title = L.DomUtil.create('strong', '', el);
-								var content  = feature.properties.label || feature.properties.name;
-								if (feature.properties.postcode) content += '(' + feature.properties.postcode + ')';
-								title.innerHTML = content;
-							},
-							onSelected: function (feature) {
-								var latlng = [feature.geometry.coordinates[1], feature.geometry.coordinates[0]];
-								var code = feature.properties.citycode;
-								var point = project(latlng);
-								var epsilon = 35;
-								var features = tree.search({
-									minX: point.x - epsilon,
-									minY: point.y - epsilon,
-									maxX: point.x + epsilon,
-									maxY: point.y + epsilon
-								});
-								var feat;
-								features.every(function(item) {
-									if (item.feature.properties.insee === code) {
-										feat = item.feature;
-										return false;
-									} else return true;
-								});
+							utils.getMap().on('click', function(e) {
+								var feat = findFeature(e.latlng);
 								focusFeature(feat);
-								utils.getMap().setView(latlng, 12);
-							}
-						}).addTo(utils.getMap());
+							});
+							utils.getMap().on('mousemove', L.Util.throttle(function(e) {
+								var feat = findFeature(e.latlng);
+								if (feat && feat.properties.res) {
+									L.DomUtil.addClass(self._container, 'leaflet-interactive');
+								} else {
+									L.DomUtil.removeClass(self._container, 'leaflet-interactive');
+								}
+							}, 32));
+							legendContent.addEventListener('click', function(e) {
+								e.stopPropagation();
+								var target = e.target;
+								if (L.DomUtil.hasClass(target, 'close')) {
+									focus.removeFrom(utils.getMap());
+									focus = null;
+									L.DomUtil.addClass(legend, 'hide');
+								}
+							});
+							L.control.photon({
+								url: API_URL + '/search/?type=municipality&&',
+								placeholder: 'Rechercher une commune',
+								position: 'topright',
+								minChar: function (val) {
+									return SHORT_CITY_NAMES.indexOf(val) !== -1 || val.length >= 3;
+								},
+								feedbackEmail: null,
+								noResultLabel: 'Aucun résultat',
+								formatResult: function (feature, el) {
+									var title = L.DomUtil.create('strong', '', el);
+									var content  = feature.properties.label || feature.properties.name;
+									if (feature.properties.postcode) content += '(' + feature.properties.postcode + ')';
+									title.innerHTML = content;
+								},
+								onSelected: function (feature) {
+									var latlng = [feature.geometry.coordinates[1], feature.geometry.coordinates[0]];
+									var code = feature.properties.citycode;
+									var point = project(latlng);
+									var epsilon = 35;
+									var features = tree.search({
+										minX: point.x - epsilon,
+										minY: point.y - epsilon,
+										maxX: point.x + epsilon,
+										maxY: point.y + epsilon
+									});
+									var feat;
+									features.every(function(item) {
+										if (item.feature.properties.insee === code) {
+											feat = item.feature;
+											return false;
+										} else return true;
+									});
+									focusFeature(feat);
+									utils.getMap().setView(latlng, 12);
+								}
+							}).addTo(utils.getMap());
+						})();
 					}
 					firstDraw = false;
 					mesh.visible = (zoom >= 9);
