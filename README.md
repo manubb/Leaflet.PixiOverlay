@@ -29,6 +29,12 @@ French legislative 2017 election results: [first round](https://manubb.github.io
 
 (*[graph-draw](https://www.npmjs.com/package/graph-draw) is used to display boundaries in the election demos when rendered in WebGL*)
 
+## Installation
+Leaflet.PixiOverlay is available as a npm package:
+```
+npm install leaflet-pixi-overlay 
+```
+
 ## Usage
 
 Include Pixi.js and the PixiOverlay libraries:
