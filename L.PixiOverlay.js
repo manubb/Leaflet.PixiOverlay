@@ -22,7 +22,8 @@
 		}
 }(function (L, PIXI) {
 
-	L.PixiOverlay = L.Layer.extend({
+	L.PixiOverlay = (L.version < "1.0" ? L.Class : L.Layer).extend({
+	includes: (L.version < "1.0" ? L.Mixin.Events : []),
 
 		options: {
 			// @option padding: Number = 0.1
@@ -53,7 +54,13 @@
 			};
 		},
 
-		onAdd: function () {
+		
+		getZoomScale: function (map, toZoom, fromZoom) {
+		  var crs = map.options.crs;
+		  return crs.scale(toZoom) / crs.scale(fromZoom);
+		},
+
+		onAdd: function (map) {
 			if (!this._container) {
 				var container = this._container = L.DomUtil.create('div', 'leaflet-pixi-overlay');
 				this._renderer = PIXI.autoDetectRenderer(this._rendererOptions);
@@ -62,16 +69,17 @@
 					L.DomUtil.addClass(container, 'leaflet-zoom-animated');
 				}
 			}
-			this.getPane().appendChild(this._container);
+			 
+			(L.version < "1.0" ? map._panes.overlayPane : this.getPane()).appendChild(this._container);
 
-			var map = this._map;
+			this._map = map;			
 			this._initialZoom = this.options.projectionZoom(map);
 			this._wgsOrigin = L.latLng([0, 0]);
 			this._disableLeafletRounding();
 			this._wgsInitialShift = map.project(this._wgsOrigin, this._initialZoom);
 			this._enableLeafletRounding();
 			this._mapInitialZoom = map.getZoom();
-			this._scale = map.getZoomScale(this._mapInitialZoom, this._initialZoom);
+			this._scale = this.getZoomScale(map, this._mapInitialZoom, this._initialZoom);
 			var _layer = this;
 
 			this.utils = {
@@ -87,7 +95,7 @@
 				},
 				getScale: function(zoom) {
 					if (zoom === undefined) return _layer._scale;
-					else return map.getZoomScale(zoom, _layer._initialZoom);
+					else return this.getZoomScale(map, zoom, _layer._initialZoom);
 				},
 				getRenderer: function() {
 					return _layer._renderer;
@@ -99,6 +107,15 @@
 					return _layer._map;
 				}
 			};
+			
+			if (L.version < "1.0") 
+			{
+			  var events = this.getEvents();
+			  for (var evt in events)
+			    map.on(evt, events[evt], this);
+			}
+			
+			
 			this._update();
 		},
 
@@ -127,7 +144,7 @@
 		},
 
 		_updateTransform: function (center, zoom) {
-			var scale = this._map.getZoomScale(zoom, this._zoom),
+			var scale = this.getZoomScale(this._map, zoom, this._zoom),
 				position = L.DomUtil.getPosition(this._container),
 				viewHalf = this._map.getSize().multiplyBy(0.5 + this.options.padding),
 				currentCenterPoint = this._map.project(this._center, zoom),
@@ -194,7 +211,12 @@
 		},
 
 		_zoomChange: function () {
-			this._scale = this._map.getZoomScale(this._map.getZoom(), this._initialZoom);
+			this._scale = this.getZoomScale(this._map, this._map.getZoom(), this._initialZoom);
+		},
+		
+		addTo: function (map) {
+        map.addLayer(this);
+        return this;
 		}
 
 	});
