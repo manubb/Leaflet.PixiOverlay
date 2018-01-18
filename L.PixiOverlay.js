@@ -1,5 +1,5 @@
 // Leaflet.PixiOverlay
-// version: 1.0.0
+// version: 1.1.0
 // author: Manuel Baclet <mbaclet@gmail.com>
 // license: MIT
 
@@ -22,7 +22,10 @@
 		}
 }(function (L, PIXI) {
 
-	L.PixiOverlay = L.Layer.extend({
+	var round = L.Point.prototype._round;
+	var no_round = function() {return this;};
+
+	var PixiOverlay = L.Layer.extend({
 
 		options: {
 			// @option padding: Number = 0.1
@@ -67,9 +70,7 @@
 			var map = this._map;
 			this._initialZoom = this.options.projectionZoom(map);
 			this._wgsOrigin = L.latLng([0, 0]);
-			this._disableLeafletRounding();
 			this._wgsInitialShift = map.project(this._wgsOrigin, this._initialZoom);
-			this._enableLeafletRounding();
 			this._mapInitialZoom = map.getZoom();
 			this._scale = map.getZoomScale(this._mapInitialZoom, this._initialZoom);
 			var _layer = this;
@@ -133,7 +134,7 @@
 				currentCenterPoint = this._map.project(this._center, zoom),
 				destCenterPoint = this._map.project(center, zoom),
 				centerOffset = destCenterPoint.subtract(currentCenterPoint),
-				topLeftOffset = viewHalf.multiplyBy(-scale).add(position).add(viewHalf).subtract(centerOffset);
+				topLeftOffset = viewHalf.multiplyBy(1 - scale).add(position).subtract(centerOffset);
 			if (L.Browser.any3d) {
 				L.DomUtil.setTransform(this._container, topLeftOffset, scale);
 			} else {
@@ -185,12 +186,11 @@
 		},
 
 		_disableLeafletRounding: function(){
-			this._leaflet_round = L.Point.prototype._round;
-			L.Point.prototype._round = function() {return this;};
+			L.Point.prototype._round = no_round;
 		},
 
 		_enableLeafletRounding: function(){
-			L.Point.prototype._round = this._leaflet_round;
+			L.Point.prototype._round = round;
 		},
 
 		_zoomChange: function () {
@@ -198,6 +198,7 @@
 		}
 
 	});
+	L.PixiOverlay = PixiOverlay;
 
 	// @factory L.pixiOverlay(drawCallback: function, pixiContainer: PIXI.Container, options?: L.PixiOverlay options)
 	// Creates a PixiOverlay with the given arguments.
