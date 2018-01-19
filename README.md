@@ -13,7 +13,7 @@ for drawing using WebGL that seamlessly falls back to HTML5's canvas if needed. 
  * No need to reproject your geometries on zoom, this is done using scaling
  * Zoom animation where Leaflet supports it
 
-*Compatible with Leaflet 1.0.x*
+*Compatible with Leaflet 0.7.7 and 1.x*
 
 ## Demo
 
@@ -32,7 +32,7 @@ French legislative 2017 election results: [first round](https://manubb.github.io
 ## Installation
 Leaflet.PixiOverlay is available as a npm package:
 ```
-npm install leaflet-pixi-overlay 
+npm install leaflet-pixi-overlay
 ```
 
 ## Usage
@@ -184,6 +184,17 @@ available methods:
  * `getRenderer()` - (function) return the current PIXI renderer.
  * `getContainer()` - (function) return the PIXI container used in the overlay.
  * `getMap()` - (function) return the current map.
+
+## Changelog
+
+### 1.1.0 (Jan 20, 2018)
+
+- Minor improvements
+- Add support for leaflet@0.7.7
+
+### 1.0.0 (Sep 2, 2017)
+
+- Initial release.
 
 ## License
 
