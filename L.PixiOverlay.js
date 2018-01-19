@@ -25,7 +25,7 @@
 	var round = L.Point.prototype._round;
 	var no_round = function() {return this;};
 
-	var PixiOverlay = L.Layer.extend({
+	var pixiOverlayClass = {
 
 		options: {
 			// @option padding: Number = 0.1
@@ -56,6 +56,14 @@
 			};
 		},
 
+		_addContainer: function() {
+			this.getPane().appendChild(this._container);
+		},
+
+		_setContainerStyle: function() {},
+
+		_setEvents: function() {},
+
 		onAdd: function () {
 			if (!this._container) {
 				var container = this._container = L.DomUtil.create('div', 'leaflet-pixi-overlay');
@@ -63,9 +71,11 @@
 				container.appendChild(this._renderer.view);
 				if (this._zoomAnimated) {
 					L.DomUtil.addClass(container, 'leaflet-zoom-animated');
+					this._setContainerStyle();
 				}
 			}
-			this.getPane().appendChild(this._container);
+			this._addContainer();
+			this._setEvents();
 
 			var map = this._map;
 			this._initialZoom = this.options.projectionZoom(map);
@@ -197,8 +207,66 @@
 			this._scale = this._map.getZoomScale(this._map.getZoom(), this._initialZoom);
 		}
 
-	});
-	L.PixiOverlay = PixiOverlay;
+	};
+
+	if (L.version >= "1") {
+
+		L.PixiOverlay = L.Layer.extend(pixiOverlayClass);
+
+	} else {
+
+		// backport some leaflet@1.0.0 methods
+		L.Map.prototype.getZoomScale = function (toZoom, fromZoom) {
+			var crs = this.options.crs;
+			fromZoom = fromZoom === undefined ? this._zoom : fromZoom;
+			return crs.scale(toZoom) / crs.scale(fromZoom);
+		};
+
+		L.DomUtil.setTransform = function (el, offset, scale) {
+			var pos = offset || new L.Point(0, 0);
+
+			el.style[L.DomUtil.TRANSFORM] =
+				(L.Browser.ie3d ?
+					'translate(' + pos.x + 'px,' + pos.y + 'px)' :
+					'translate3d(' + pos.x + 'px,' + pos.y + 'px,0)') +
+				(scale ? ' scale(' + scale + ')' : '');
+		};
+
+		// patch pixiOverlayClass for leaflet@0.7.7
+		pixiOverlayClass.includes = L.Mixin.Events;
+
+		pixiOverlayClass.addTo = function (map) {
+			this._map = map;
+			this._zoomAnimated = map._zoomAnimated;
+			map.addLayer(this);
+			return this;
+		};
+
+		pixiOverlayClass._addContainer = function() {
+			this._map._panes.overlayPane.appendChild(this._container);
+		};
+
+		pixiOverlayClass._setContainerStyle = function() {
+			var self = this;
+			[
+				'-webkit-transform-origin',
+				'-ms-transform-origin',
+				'transform-origin'
+			].forEach(function(property) {
+				self._container.style[property] = '0 0';
+			});
+		};
+
+		pixiOverlayClass._setEvents = function() {
+			var events = this.getEvents();
+		  for (var evt in events) {
+		    this._map.on(evt, events[evt], this);
+		  }
+		};
+
+		L.PixiOverlay = L.Class.extend(pixiOverlayClass);
+
+	}
 
 	// @factory L.pixiOverlay(drawCallback: function, pixiContainer: PIXI.Container, options?: L.PixiOverlay options)
 	// Creates a PixiOverlay with the given arguments.
