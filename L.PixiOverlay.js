@@ -23,7 +23,7 @@
 }(function (L, PIXI) {
 
 	var round = L.Point.prototype._round;
-	var no_round = function() {return this;};
+	var no_round = function () {return this;};
 
 	var pixiOverlayClass = {
 
@@ -40,7 +40,7 @@
 			resolution: L.Browser.retina ? 2 : 1,
 			// @option projectionZoom(map: map): Number
 			// return the layer projection zoom level
-			projectionZoom: function(map) {return (map.getMaxZoom() + map.getMinZoom()) / 2;}
+			projectionZoom: function (map) {return (map.getMaxZoom() + map.getMinZoom()) / 2;}
 		},
 
 		initialize: function (drawCallback, pixiContainer, options) {
@@ -56,13 +56,13 @@
 			};
 		},
 
-		_addContainer: function() {
+		_addContainer: function () {
 			this.getPane().appendChild(this._container);
 		},
 
-		_setContainerStyle: function() {},
+		_setContainerStyle: function () {},
 
-		_setEvents: function() {},
+		_setEvents: function () {},
 
 		onAdd: function () {
 			if (!this._container) {
@@ -96,17 +96,17 @@
 					var projectedPoint = L.point(point);
 					return map.unproject(projectedPoint, zoom);
 				},
-				getScale: function(zoom) {
+				getScale: function (zoom) {
 					if (zoom === undefined) return _layer._scale;
 					else return map.getZoomScale(zoom, _layer._initialZoom);
 				},
-				getRenderer: function() {
+				getRenderer: function () {
 					return _layer._renderer;
 				},
-				getContainer: function() {
+				getContainer: function () {
 					return _layer._pixiContainer;
 				},
-				getMap: function() {
+				getMap: function () {
 					return _layer._map;
 				}
 			};
@@ -195,11 +195,11 @@
 			this._enableLeafletRounding();
 		},
 
-		_disableLeafletRounding: function(){
+		_disableLeafletRounding: function () {
 			L.Point.prototype._round = no_round;
 		},
 
-		_enableLeafletRounding: function(){
+		_enableLeafletRounding: function () {
 			L.Point.prototype._round = round;
 		},
 
@@ -242,22 +242,22 @@
 			return this;
 		};
 
-		pixiOverlayClass._addContainer = function() {
+		pixiOverlayClass._addContainer = function () {
 			this._map._panes.overlayPane.appendChild(this._container);
 		};
 
-		pixiOverlayClass._setContainerStyle = function() {
+		pixiOverlayClass._setContainerStyle = function () {
 			var self = this;
 			[
 				'-webkit-transform-origin',
 				'-ms-transform-origin',
 				'transform-origin'
-			].forEach(function(property) {
+			].forEach(function (property) {
 				self._container.style[property] = '0 0';
 			});
 		};
 
-		pixiOverlayClass._setEvents = function() {
+		pixiOverlayClass._setEvents = function () {
 			var events = this.getEvents();
 		  for (var evt in events) {
 		    this._map.on(evt, events[evt], this);
