@@ -1,5 +1,5 @@
 // Leaflet.PixiOverlay
-// version: 1.1.2
+// version: 1.1.3
 // author: Manuel Baclet <mbaclet@gmail.com>
 // license: MIT
 

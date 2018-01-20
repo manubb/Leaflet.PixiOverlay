@@ -187,7 +187,7 @@ available methods:
 
 ## Changelog
 
-### 1.1.2 (Jan 20, 2018)
+### 1.1.3 (Jan 20, 2018)
 
 - Minor improvements
 - Add support for leaflet@0.7.7
