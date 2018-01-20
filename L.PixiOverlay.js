@@ -259,9 +259,9 @@
 
 		pixiOverlayClass._setEvents = function () {
 			var events = this.getEvents();
-		  for (var evt in events) {
-		    this._map.on(evt, events[evt], this);
-		  }
+			for (var evt in events) {
+				this._map.on(evt, events[evt], this);
+			}
 		};
 
 		L.PixiOverlay = L.Class.extend(pixiOverlayClass);
