@@ -56,15 +56,18 @@
 			};
 		},
 
+		_setMap: function () {},
+
+		_setContainerStyle: function () {},
+
 		_addContainer: function () {
 			this.getPane().appendChild(this._container);
 		},
 
-		_setContainerStyle: function () {},
-
 		_setEvents: function () {},
 
-		onAdd: function () {
+		onAdd: function (targetMap) {
+			this._setMap(targetMap);
 			if (!this._container) {
 				var container = this._container = L.DomUtil.create('div', 'leaflet-pixi-overlay');
 				this._renderer = PIXI.autoDetectRenderer(this._rendererOptions);
@@ -236,14 +239,13 @@
 		pixiOverlayClass.includes = L.Mixin.Events;
 
 		pixiOverlayClass.addTo = function (map) {
-			this._map = map;
-			this._zoomAnimated = map._zoomAnimated;
 			map.addLayer(this);
 			return this;
 		};
 
-		pixiOverlayClass._addContainer = function () {
-			this._map._panes.overlayPane.appendChild(this._container);
+		pixiOverlayClass._setMap = function (map) {
+			this._map = map;
+			this._zoomAnimated = map._zoomAnimated;
 		};
 
 		pixiOverlayClass._setContainerStyle = function () {
@@ -255,6 +257,10 @@
 			].forEach(function (property) {
 				self._container.style[property] = '0 0';
 			});
+		};
+
+		pixiOverlayClass._addContainer = function () {
+			this._map._panes.overlayPane.appendChild(this._container);
 		};
 
 		pixiOverlayClass._setEvents = function () {
