@@ -149,7 +149,7 @@
 				}, pixiContainer, {
 					padding: 0,
 					resolution: 1,
-					forceCanvas: /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
+					doubleBuffering: /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
 				});
 			})();
 			pixiOverlay.addTo(map);

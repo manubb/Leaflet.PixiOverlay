@@ -211,7 +211,7 @@
 				}
 				var focus = null;
 				var barbiche = Barbiche();
-				var forceCanvas = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+				var doubleBuffering = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 				var mesh;
 				return L.pixiOverlay(function(utils) {
 					var zoom = utils.getMap().getZoom();
@@ -520,7 +520,7 @@
 					prevZoom = zoom;
 					renderer.render(container);
 				}, pixiContainer, {
-					forceCanvas: forceCanvas
+					doubleBuffering: doubleBuffering
 				});
 			})();
 			pixiLayer.addTo(map);

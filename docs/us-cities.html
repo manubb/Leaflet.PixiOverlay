@@ -74,7 +74,7 @@
 					var frame = null;
 					var focus = null;
 					var pixiContainer = new PIXI.Container();
-					var forceCanvas = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+					var doubleBuffering = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 					return L.pixiOverlay(function(utils) {
 						var zoom = utils.getMap().getZoom();
 						if (frame) {
@@ -200,7 +200,7 @@
 						prevZoom = zoom;
 						renderer.render(container);
 					}, pixiContainer, {
-						forceCanvas: forceCanvas
+						doubleBuffering: doubleBuffering
 					});
 				})();
 
