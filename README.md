@@ -13,7 +13,7 @@ for drawing using WebGL that seamlessly falls back to HTML5's canvas if needed. 
  * No need to reproject your geometries on zoom, this is done using scaling
  * Zoom animation where Leaflet supports it
 
-*Compatible with Leaflet 0.7.7 and 1.x*
+*Compatible with Leaflet 0.7.x and 1.x*
 
 ## Demo
 
@@ -171,6 +171,7 @@ available fields:
 
  * `padding` - (number; defaults to `0.1`) How much to extend the drawing area around the map view (relative to its size).
  * `forceCanvas` - (bool; defaults to `false`) Force use of a 2d-canvas for rendering.
+ * `doubleBuffering` - (bool; default to `false`) Activate double buffering to prevent flickering when refreshing display on some devices (especially iOS devices). This field is ignored if rendering is done with 2d-canvas.
  * `resolution` - (number; defaults to `2` on retina devices and `1` elsewhere) Resolution of the renderer.
  * `projectionZoom` - (function(map): Number; defaults to function that returns the average of `map.getMinZoom()` and `map.getMaxZoom()`) returns the projection zoom level. Customizing this option can help if you experience visual artifacts.
 
@@ -187,10 +188,13 @@ available methods:
 
 ## Changelog
 
+### 1.2.0 (Jan 20, 2018)
+- Add `doubleBuffering` option to get rid of flickering on iOS devices
+
 ### 1.1.3 (Jan 20, 2018)
 
 - Minor improvements
-- Add support for leaflet@0.7.7
+- Add support for leaflet@0.7.x (thanks to [dzwiedzmin](https://github.com/dzwiedzmin))
 
 ### 1.0.0 (Sep 2, 2017)
 
