@@ -1,5 +1,5 @@
 // Leaflet.PixiOverlay
-// version: 1.1.3
+// version: 1.2.0
 // author: Manuel Baclet <mbaclet@gmail.com>
 // license: MIT
 
@@ -35,6 +35,10 @@
 			// @option forceCanvas: Boolean
 			// Force use of a 2d-canvas
 			forceCanvas: false,
+			// @option doubleBuffering: Boolean
+			// Help to prevent flicker when refreshing display on some devices (e.g. iOS devices)
+			// It is ignored if rendering is done with 2d-canvas
+			doubleBuffering: false,
 			// @option resolution: Number = 1
 			// Resolution of the renderer canvas
 			resolution: L.Browser.retina ? 2 : 1,
@@ -54,6 +58,8 @@
 				antialias: true,
 				forceCanvas: this.options.forceCanvas
 			};
+			this._doubleBuffering = PIXI.utils.isWebGLSupported() && !this.options.forceCanvas &&
+				this.options.doubleBuffering;
 		},
 
 		_setMap: function () {},
@@ -75,6 +81,12 @@
 				if (this._zoomAnimated) {
 					L.DomUtil.addClass(container, 'leaflet-zoom-animated');
 					this._setContainerStyle();
+				}
+				if (this._doubleBuffering) {
+					this._auxRenderer = PIXI.autoDetectRenderer(this._rendererOptions);
+					container.appendChild(this._auxRenderer.view);
+					this._renderer.view.style.position = 'absolute';
+					this._auxRenderer.view.style.position = 'absolute';
 				}
 			}
 			this._addContainer();
@@ -168,11 +180,17 @@
 			this._center = this._map.getCenter();
 			this._zoom = this._map.getZoom();
 
+			if (this._doubleBuffering) {
+				var currentRenderer = this._renderer;
+				this._renderer = this._auxRenderer;
+				this._auxRenderer = currentRenderer;
+			}
+
 			var view = this._renderer.view;
 			var b = this._bounds,
 				container = this._container,
 				size = b.getSize();
-			L.DomUtil.setPosition(container, b.min);
+
 			if (!this._renderer.size || this._renderer.size.x !== size.x || this._renderer.size.y !== size.y) {
 				if (this._renderer.gl) {
 					this._renderer.resolution = this._renderer.rootRenderTarget.resolution = this.options.resolution;
@@ -189,6 +207,7 @@
 				}
 				this._renderer.size = size;
 			}
+
 			this._disableLeafletRounding();
 			var shift = this._map.latLngToLayerPoint(this._wgsOrigin)
 				._subtract(this._wgsInitialShift.multiplyBy(this._scale))._subtract(b.min);
@@ -196,6 +215,14 @@
 			this._pixiContainer.position.set(shift.x, shift.y);
 			this._drawCallback(this.utils);
 			this._enableLeafletRounding();
+
+			if (this._doubleBuffering) {
+				this._renderer.gl.flush();
+				view.style.visibility = 'visible';
+				this._auxRenderer.view.style.visibility = 'hidden';
+			}
+
+			L.DomUtil.setPosition(container, b.min);
 		},
 
 		_disableLeafletRounding: function () {
