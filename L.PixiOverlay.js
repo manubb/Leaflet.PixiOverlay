@@ -167,7 +167,7 @@
 			}
 		},
 
-		_update: function (e) {
+		_update: function () {
 			// is this really useful?
 			if (this._map._animatingZoom && this._bounds) {return;}
 
