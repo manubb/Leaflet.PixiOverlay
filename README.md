@@ -150,7 +150,7 @@ pixiOverlay.addTo(map);
 
 ## API
 
-*Factory method*
+### *Factory method*
 
     L.pixiOverlay(<function> drawCallback, <PIXI.Container> container, <options> options?)
 
@@ -185,7 +185,7 @@ available methods:
  * `getContainer()` - (function) return the PIXI container used in the overlay.
  * `getMap()` - (function) return the current map.
 
-*Instance methods*
+### *Instance methods*
 
 * `redraw()` - (function) trigger a refresh of the layer. This is useful when you modify something in the `container`.
 
