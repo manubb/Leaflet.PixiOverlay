@@ -158,7 +158,6 @@ pixiOverlay.addTo(map);
  * `container` a Pixi container (a subclass of `PIXI.Container`).
  * `options`  - overlay options object.
 
-
 *Drawing callback function*
 
     drawCallback(utils)
@@ -186,7 +185,14 @@ available methods:
  * `getContainer()` - (function) return the PIXI container used in the overlay.
  * `getMap()` - (function) return the current map.
 
+*Instance methods*
+
+* `redraw()` - (function) trigger a refresh of the layer. This is useful when you modify something in the `container`.
+
 ## Changelog
+
+### 1.3.0 (Jan 22, 2018)
+- Add `redraw` method
 
 ### 1.2.0 (Jan 20, 2018)
 - Add `doubleBuffering` option to get rid of flickering on iOS devices
