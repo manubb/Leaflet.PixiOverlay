@@ -1,5 +1,5 @@
 // Leaflet.PixiOverlay
-// version: 1.2.0
+// version: 1.3.0
 // author: Manuel Baclet <mbaclet@gmail.com>
 // license: MIT
 
@@ -235,6 +235,13 @@
 
 		_zoomChange: function () {
 			this._scale = this._map.getZoomScale(this._map.getZoom(), this._initialZoom);
+		},
+
+		redraw: function () {
+			if (this._map) {
+				this._update();
+			}
+			return this;
 		}
 
 	};
