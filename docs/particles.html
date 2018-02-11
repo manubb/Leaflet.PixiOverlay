@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html style="height: 100%; margin: 0;">
+<head>
+	<title>Leaflet.PixiOverlay: 1000 US cities with overlap</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<link rel="stylesheet" href="css/leaflet.css"/>
+	<link rel="stylesheet" href="css/carte.css"/>
+	<script src="js/example.min.js"></script>
+	<script src="js/tools.min.js"></script>
+</head>
+<body style="height: 100%; margin: 0; overflow: hidden;">
+<div id="map" style="height: 100%; width: 100%;" class="cartes">
+	<div class="legend geometry top center hide">
+		<div class="wrapper">
+			<div class="content"></div>
+		</div>
+	</div>
+</div>
+<script>
+	function getRandom(min, max) {
+		return min + Math.random() * (max - min);
+	}
+
+	var loader = new PIXI.loaders.Loader();
+	loader
+		.add('plane', 'img/plane.png')
+		.add('focusPlane', 'img/focus-plane.png')
+		.add('circle', 'img/circle.png')
+		.add('focusCircle', 'img/focus-circle.png')
+		.add('bicycle', 'img/bicycle.png')
+		.add('focusBicycle', 'img/focus-bicycle.png');
+	document.addEventListener("DOMContentLoaded", function() {
+		loader.load(function(loader, resources) {
+			var textures = [resources.plane.texture, resources.circle.texture, resources.bicycle.texture];
+			var focusTextures = [resources.focusPlane.texture, resources.focusCircle.texture, resources.focusBicycle.texture];
+			var markers = Array(400000).fill().map((e,i)=> ({
+				"latitude": getRandom(35, 55),
+      	"longitude": getRandom(-10, 20)
+			}));
+			var map = L.map('map').setView([46.953387, 2.892341], 6);
+			L.tileLayer('//stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
+				subdomains: 'abcd',
+				attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+				minZoom: 4,
+				maxZoom: 18
+			}).addTo(map);
+			map.attributionControl.setPosition('bottomleft');
+			map.zoomControl.setPosition('bottomright');
+			var legend = document.querySelector('div.legend.geometry');
+			var legendContent = legend.querySelector('.content');
+			var pixiLayer = (function() {
+				var firstDraw = true;
+				var prevZoom;
+				var markerSprites = [];
+				var colorScale = d3.scaleLinear()
+					.domain([0, 50, 100])
+					.range(["#c6233c", "#ffd300", "#008000"]);
+
+				var frame = null;
+				var focus = null;
+				var pixiContainer = new PIXI.ParticleContainer(400000, {vertices: true});
+				var tint = d3.color(colorScale(Math.random() * 100)).rgb();
+				pixiContainer.tint = 256 * (tint.r * 256 + tint.g) + tint.b;
+				var doubleBuffering = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+				return L.pixiOverlay(function(utils) {
+					var zoom = utils.getMap().getZoom();
+					var container = utils.getContainer();
+					var renderer = utils.getRenderer();
+					var project = utils.latLngToLayerPoint;
+					var scale = utils.getScale();
+					var invScale = 1 / scale;
+					if (firstDraw) {
+						prevZoom = zoom;
+						markers.forEach(function(marker) {
+							var coords = project([marker.latitude, marker.longitude]);
+							var markerSprite = new PIXI.Sprite(textures[2]);
+							markerSprite.x = coords.x;
+							markerSprite.y = coords.y;
+							markerSprite.anchor.set(0.5, 0.5);
+							container.addChild(markerSprite);
+							markerSprites.push(markerSprite);
+							markerSprite.legend = marker.city || marker.label;
+						});
+					}
+					if (firstDraw || prevZoom !== zoom) {
+						markerSprites.forEach(function(markerSprite) {
+							markerSprite.scale.set(invScale / 2);
+						});
+					}
+					firstDraw = false;
+					prevZoom = zoom;
+					renderer.render(container);
+				}, pixiContainer, {
+					doubleBuffering: true
+				});
+			})();
+
+			pixiLayer.addTo(map);
+		});
+	});
+</script>
+</body>
+</html>
