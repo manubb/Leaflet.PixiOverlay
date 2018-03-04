@@ -36,7 +36,7 @@
 			var focusTextures = [resources.focusPlane.texture, resources.focusCircle.texture, resources.focusBicycle.texture];
 			var markers = Array(1000000).fill().map((e,i)=> ({
 				"latitude": getRandom(48.7, 49),
-      	"longitude": getRandom(2.2, 2.8)
+				"longitude": getRandom(2.2, 2.8)
 			}));
 			var map = L.map('map').setView([ 48.838565,  2.449264526367], 13);
 			L.tileLayer('//stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
@@ -93,7 +93,9 @@
 					firstDraw = false;
 					prevZoom = zoom;
 					renderer.render(container);
-				}, pixiContainer);
+				}, pixiContainer, {
+					doubleBuffering: doubleBuffering
+				});
 			})();
 
 			pixiLayer.addTo(map);
