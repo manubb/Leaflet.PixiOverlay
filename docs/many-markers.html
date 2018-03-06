@@ -10,13 +10,7 @@
 	<script src="https://cdn.jsdelivr.net/npm/leaflet-pixi-overlay/L.PixiOverlay.min.js"></script>
 </head>
 <body style="height: 100%; margin: 0; overflow: hidden;">
-<div id="map" style="height: 100%; width: 100%;" class="cartes">
-	<div class="legend geometry top center hide">
-		<div class="wrapper">
-			<div class="content"></div>
-		</div>
-	</div>
-</div>
+<div id="map" style="height: 100%; width: 100%;"></div>
 <script>
 	function getRandom(min, max) {
 		return min + Math.random() * (max - min);
@@ -27,7 +21,7 @@
 		.add('bicycle', 'img/bicycle.png');
 	document.addEventListener("DOMContentLoaded", function() {
 		loader.load(function(loader, resources) {
-			var textures = [resources.bicycle.texture];
+			var texture = resources.bicycle.texture;
 			var markers = Array(1000000).fill().map((e,i)=> ({
 				"latitude": getRandom(48.7, 49),
 				"longitude": getRandom(2.2, 2.8)
@@ -41,8 +35,6 @@
 			}).addTo(map);
 			map.attributionControl.setPosition('bottomleft');
 			map.zoomControl.setPosition('bottomright');
-			var legend = document.querySelector('div.legend.geometry');
-			var legendContent = legend.querySelector('.content');
 			var pixiLayer = (function() {
 				var firstDraw = true;
 				var prevZoom;
@@ -66,13 +58,14 @@
 						prevZoom = zoom;
 						markers.forEach(function(marker) {
 							var coords = project([marker.latitude, marker.longitude]);
-							var markerSprite = new PIXI.Sprite(textures[0]);
+							var markerSprite = new PIXI.Sprite(texture);
 							markerSprite.x = coords.x;
 							markerSprite.y = coords.y;
 							markerSprite.anchor.set(0.5, 0.5);
 							container.addChild(markerSprite);
 							markerSprites.push(markerSprite);
 						});
+						markers = null;
 					}
 					if (firstDraw || prevZoom !== zoom) {
 						var currentScale = zoom <= 15 ?  initialScale : invScale;
