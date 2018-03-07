@@ -19,9 +19,11 @@ for drawing using WebGL that seamlessly falls back to HTML5's canvas if needed. 
 
 A very basic [demo](https://manubb.github.io/Leaflet.PixiOverlay/leaflet-quickstart.html).
 
-Largest [US cities](https://manubb.github.io/Leaflet.PixiOverlay/us-cities.html) (1000 markers).
+Largest [US cities](https://manubb.github.io/Leaflet.PixiOverlay/us-cities.html) (1000 animated markers).
 
-[French cities](https://manubb.github.io/Leaflet.PixiOverlay/french-cities.html) (36700 markers).
+[French cities](https://manubb.github.io/Leaflet.PixiOverlay/french-cities.html) (36700 animated markers).
+
+[One million markers](https://manubb.github.io/Leaflet.PixiOverlay/many-markers.html)
 
 French presidential 2017 election results: [first round](https://manubb.github.io/Leaflet.PixiOverlay/t1.html) and [second round](https://manubb.github.io/Leaflet.PixiOverlay/t2.html) (36000 polygons).
 
