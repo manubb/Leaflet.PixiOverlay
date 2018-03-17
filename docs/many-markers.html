@@ -26,12 +26,18 @@
 			spriteModel.anchor.set(0.5, 0.5);
 			var transformModel = spriteModel.transform;
 			function createSharedSprite(coords) {
-				var markerSprite = Object.create(spriteModel);
-				markerSprite.transform = Object.create(transformModel);
-				markerSprite.transform.position = new PIXI.ObservablePoint(markerSprite.transform.onChange.bind(markerSprite.transform), markerSprite.transform, 0, 0);
-				markerSprite.x = coords.x;
-				markerSprite.y = coords.y;
-				return markerSprite;
+				return Object.create(spriteModel, {
+					transform: {
+						value: Object.create(transformModel, {
+							position: {
+								value: {
+									x: coords.x,
+									y: coords.y,
+								}
+							}
+						})
+					}
+				});
 			}
 			var map = L.map('map').setView([ 48.838565,  2.449264526367], 13);
 			L.tileLayer('//stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
