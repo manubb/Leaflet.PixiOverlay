@@ -419,7 +419,7 @@
 											}
 										})
 									});
-									graphDraw({vertices: vertices, edges: edges}, 2 / utils.getScale(12), meshCb, 3 * Math.PI / 2);
+									graphDraw({vertices: vertices, edges: edges}, 2 / utils.getScale(12), meshCb, Math.PI);
 									meshCreate(meshVertices, meshIndices, mesh, 0x333333);
 									memo = Object.create(null);
 									newIndex = 0;
@@ -446,7 +446,7 @@
 											}
 										})
 									});
-									graphDraw({vertices: vertices2, edges: edges2}, 6 / utils.getScale(12), circMeshCb, 3 * Math.PI / 2);
+									graphDraw({vertices: vertices2, edges: edges2}, 6 / utils.getScale(12), circMeshCb, Math.PI);
 									meshCreate(meshVertices, meshIndices, circMesh, 0);
 								})();
 							} else {
