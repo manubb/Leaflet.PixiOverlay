@@ -15,17 +15,24 @@
 	function getRandom(min, max) {
 		return min + Math.random() * (max - min);
 	}
-
+	var markersLength = 1000000;
 	var loader = new PIXI.loaders.Loader();
 	loader
 		.add('bicycle', 'img/bicycle.png');
 	document.addEventListener("DOMContentLoaded", function() {
 		loader.load(function(loader, resources) {
 			var texture = resources.bicycle.texture;
-			var markers = Array(1000000).fill().map((e,i)=> ({
-				"latitude": getRandom(48.7, 49),
-				"longitude": getRandom(2.2, 2.8)
-			}));
+			var spriteModel = new PIXI.Sprite(texture);
+			spriteModel.anchor.set(0.5, 0.5);
+			var transformModel = spriteModel.transform;
+			function createSharedSprite(coords) {
+				var markerSprite = Object.create(spriteModel);
+				markerSprite.transform = Object.create(transformModel);
+				markerSprite.transform.position = new PIXI.ObservablePoint(markerSprite.transform.onChange.bind(markerSprite.transform), markerSprite.transform, 0, 0);
+				markerSprite.x = coords.x;
+				markerSprite.y = coords.y;
+				return markerSprite;
+			}
 			var map = L.map('map').setView([ 48.838565,  2.449264526367], 13);
 			L.tileLayer('//stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
 				subdomains: 'abcd',
@@ -38,11 +45,7 @@
 			var pixiLayer = (function() {
 				var firstDraw = true;
 				var prevZoom;
-				var markerSprites = [];
-
-				var frame = null;
-				var focus = null;
-				var pixiContainer = new PIXI.ParticleContainer(1000000, {vertices: true});
+				var pixiContainer = new PIXI.ParticleContainer(markersLength, {vertices: true});
 				pixiContainer.tint = 13648434;
 				var doubleBuffering = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 				var initialScale;
@@ -55,23 +58,13 @@
 					var invScale = 1 / scale;
 					if (firstDraw) {
 						initialScale = invScale / 8;
-						prevZoom = zoom;
-						markers.forEach(function(marker) {
-							var coords = project([marker.latitude, marker.longitude]);
-							var markerSprite = new PIXI.Sprite(texture);
-							markerSprite.x = coords.x;
-							markerSprite.y = coords.y;
-							markerSprite.anchor.set(0.5, 0.5);
-							container.addChild(markerSprite);
-							markerSprites.push(markerSprite);
-						});
-						markers = null;
+						for (var i = 0; i < markersLength; i++) {
+							container.addChild(createSharedSprite(project([getRandom(48.7, 49), getRandom(2.2, 2.8)])));
+						}
 					}
 					if (firstDraw || prevZoom !== zoom) {
 						var currentScale = zoom <= 15 ?  initialScale : invScale;
-						markerSprites.forEach(function(markerSprite) {
-							markerSprite.scale.set(currentScale);
-						});
+						spriteModel.scale.set(currentScale);
 					}
 					firstDraw = false;
 					prevZoom = zoom;
