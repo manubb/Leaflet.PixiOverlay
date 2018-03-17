@@ -268,36 +268,26 @@
 							topo = null;
 
 							prevZoom = zoom;
-							geojson.features.forEach(function(feature) {
-								var alpha, color;
-								function drawPoly(poly) {
-									if (poly.length === 1) {
-										var coords = poly[0].map(function(point) {
-											return new PIXI.Point(point[0], point[1]);
-										});
-										var shape = new PIXI.Polygon(coords);
-										shape.close();
-										container.beginFill(color, alpha);
-										container.drawShape(shape);
-									} else {
-										var drawing = new PIXI.Graphics();
-										drawing.beginFill(color, alpha);
-										poly[0].forEach(function(point, index) {
-											if (index === 0) drawing.moveTo(point[0], point[1]);
-											else drawing.lineTo(point[0], point[1]);
-										});
-										drawing.closePath();
+							function drawPoly(color, alpha) {
+								return function(poly) {
+									var shape = new PIXI.Polygon(poly[0].map(function(point) {
+										return new PIXI.Point(point[0], point[1]);
+									}));
+									container.beginFill(color, alpha);
+									container.drawShape(shape);
+									if (poly.length > 1) {
 										for (var i = 1; i < poly.length; i++) {
-											poly[i].forEach(function(point, index) {
-												if (index === 0) drawing.moveTo(point[0], point[1]);
-												else drawing.lineTo(point[0], point[1]);
-											});
-											drawing.closePath();
-											drawing.addHole();
+											var hole = new PIXI.Polygon(poly[i].map(function(point) {
+												return new PIXI.Point(point[0], point[1]);
+											}));
+											container.drawShape(hole);
+											container.addHole();
 										}
-										container.addChild(drawing);
 									}
-								}
+								};
+							}
+							geojson.features.forEach(function(feature, index) {
+								var alpha, color;
 								var res = feature.properties.res;
 								if (res !== undefined) {
 									color = panneau2color[res.num || 0];
@@ -310,9 +300,9 @@
 								var bounds;
 								if (feature.geometry.type === 'Polygon') {
 									bounds = L.bounds(feature.geometry.coordinates[0]);
-									drawPoly(feature.geometry.coordinates);
+									drawPoly(color, alpha)(feature.geometry.coordinates);
 								} else if (feature.geometry.type == 'MultiPolygon') {
-									feature.geometry.coordinates.forEach(drawPoly);
+									feature.geometry.coordinates.forEach(drawPoly(color, alpha));
 									feature.geometry.coordinates.forEach(function(poly, index) {
 										if (index === 0) bounds = L.bounds(poly[0]);
 										else {
