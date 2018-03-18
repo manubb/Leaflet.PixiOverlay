@@ -18,12 +18,12 @@
 	var markersLength = 1000000;
 	var loader = new PIXI.loaders.Loader();
 	loader
-		.add('bicycle', 'img/bicycle.png');
+		.add('marker', 'img/marker-icon.png');
 	document.addEventListener("DOMContentLoaded", function() {
 		loader.load(function(loader, resources) {
-			var texture = resources.bicycle.texture;
+			var texture = resources.marker.texture;
 			var spriteModel = new PIXI.Sprite(texture);
-			spriteModel.anchor.set(0.5, 0.5);
+			spriteModel.anchor.set(0.5, 1);
 			var transformModel = spriteModel.transform;
 			function createSharedSprite(coords) {
 				return Object.create(spriteModel, {
@@ -52,7 +52,6 @@
 				var firstDraw = true;
 				var prevZoom;
 				var pixiContainer = new PIXI.ParticleContainer(markersLength, {vertices: true});
-				pixiContainer.tint = 13648434;
 				var doubleBuffering = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 				var initialScale;
 				return L.pixiOverlay(function(utils) {
