@@ -2,7 +2,7 @@
   "name": "leaflet-pixi-overlay",
   "description": "Leaflet Plugin: Pixi.js Overlay",
   "author": "Manuel Baclet <mbaclet@gmail.com>",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "main": "L.PixiOverlay.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -22,7 +22,7 @@
   "homepage": "https://github.com/manubb/Leaflet.PixiOverlay#readme",
   "peerDependencies": {
     "leaflet": ">=0.7",
-    "pixi.js": "^4.7.0"
+    "pixi.js": ">=4.6"
   },
   "devDependencies": {
     "barbiche": "^3.0.10",
@@ -31,14 +31,14 @@
     "d3-interpolate": "^1.1.6",
     "d3-quadtree": "^1.0.3",
     "d3-scale": "^1.0.7",
-    "graph-draw": "^2.0.0",
+    "graph-draw": "^2.0.2",
     "jshint": "^2.9.4",
     "leaflet-hash": "^0.2.1",
     "leaflet.photon": "^0.7.3",
     "rbush": "^2.0.2",
     "template-mb": "^2.0.6",
     "topojson-client": "^3.0.0",
-    "uglify-js": "^3.3.7"
+    "uglify-js": "^3.3.15"
   },
   "bugs": {
     "url": "https://github.com/manubb/Leaflet.PixiOverlay/issues"

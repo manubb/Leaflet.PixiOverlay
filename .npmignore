@@ -2,3 +2,5 @@ docs
 docs_src
 private
 L.PixiOverlay-experiment.js
+L.PixiOverlay-legacy.js
+package-lock.json
