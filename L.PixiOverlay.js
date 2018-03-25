@@ -44,7 +44,10 @@
 			resolution: L.Browser.retina ? 2 : 1,
 			// @option projectionZoom(map: map): Number
 			// return the layer projection zoom level
-			projectionZoom: function (map) {return (map.getMaxZoom() + map.getMinZoom()) / 2;}
+			projectionZoom: function (map) {return (map.getMaxZoom() + map.getMinZoom()) / 2;},
+			// @option redrawOnZoomAnim: Boolean
+			// Trigger a redraw when zoom animation starts
+			redrawOnZoomAnim: false
 		},
 
 		initialize: function (drawCallback, pixiContainer, options) {
@@ -125,7 +128,7 @@
 					return _layer._map;
 				}
 			};
-			this._update();
+			this._update({type: 'add'});
 		},
 
 		onRemove: function () {
@@ -144,8 +147,11 @@
 			return events;
 		},
 
-		_onAnimZoom: function (ev) {
-			this._updateTransform(ev.center, ev.zoom);
+		_onAnimZoom: function (e) {
+			this._updateTransform(e.center, e.zoom);
+			if (this.options.redrawOnZoomAnim) {
+				this._drawCallback(this.utils, e);
+			}
 		},
 
 		_onZoom: function () {
@@ -167,7 +173,7 @@
 			}
 		},
 
-		_update: function () {
+		_update: function (e) {
 			// is this really useful?
 			if (this._map._animatingZoom && this._bounds) {return;}
 
@@ -213,7 +219,7 @@
 				._subtract(this._wgsInitialShift.multiplyBy(this._scale))._subtract(b.min);
 			this._pixiContainer.scale.set(this._scale);
 			this._pixiContainer.position.set(shift.x, shift.y);
-			this._drawCallback(this.utils);
+			this._drawCallback(this.utils, e);
 			this._enableLeafletRounding();
 
 			if (this._doubleBuffering) {
@@ -237,10 +243,10 @@
 			this._scale = this._map.getZoomScale(this._map.getZoom(), this._initialZoom);
 		},
 
-		redraw: function () {
+		redraw: function (data) {
 			if (this._map) {
 				this._disableLeafletRounding();
-				this._drawCallback(this.utils);
+				this._drawCallback(this.utils, data);
 				this._enableLeafletRounding();
 			}
 			return this;
