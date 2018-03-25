@@ -239,7 +239,9 @@
 
 		redraw: function () {
 			if (this._map) {
-				this._update();
+				this._disableLeafletRounding();
+				this._drawCallback(this.utils);
+				this._enableLeafletRounding();
 			}
 			return this;
 		}
