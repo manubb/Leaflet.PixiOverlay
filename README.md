@@ -25,6 +25,8 @@ Largest [US cities](https://manubb.github.io/Leaflet.PixiOverlay/us-cities.html)
 
 [One million markers](https://manubb.github.io/Leaflet.PixiOverlay/many-markers.html)
 
+[Rotating markers with constant size during zoom](https://manubb.github.io/Leaflet.PixiOverlay/animated-markers.html)
+
 French presidential 2017 election results: [first round](https://manubb.github.io/Leaflet.PixiOverlay/t1.html) and [second round](https://manubb.github.io/Leaflet.PixiOverlay/t2.html) (36000 polygons).
 
 French legislative 2017 election results: [first round](https://manubb.github.io/Leaflet.PixiOverlay/leg-t1.html) and [second round](https://manubb.github.io/Leaflet.PixiOverlay/leg-t2.html) (36000 polygons).
@@ -156,15 +158,16 @@ pixiOverlay.addTo(map);
 
     L.pixiOverlay(<function> drawCallback, <PIXI.Container> container, <options> options?)
 
- * `drawCallback`  - callback to draw/update overlay contents.
- * `container` a Pixi container (a subclass of `PIXI.Container`).
- * `options`  - overlay options object.
+ * `drawCallback` - callback to draw/update overlay contents.
+ * `container` - a Pixi container (a subclass of `PIXI.Container`).
+ * `options` - overlay options object.
 
 *Drawing callback function*
 
-    drawCallback(utils)
+    drawCallback(utils, eventOrCustomData)
 
- * `utils`  - helper object. Contains methods to work with layers coordinate system and scaling.
+ * `utils` - helper object. Contains methods to work with layers coordinate system and scaling.
+ * `eventOrCustomData` - Contains either the Leaflet event that causes the redraw (`moveend` event or `zoomanim` event if `redrawOnZoomAnim` is set to `true` in configuration object) or a plain object `{type: 'add'}` when the pixi layer is added to the map or the argument of a `redraw` call.
 
 *Overlay options object*
 
@@ -175,23 +178,28 @@ available fields:
  * `doubleBuffering` - (bool; default to `false`) Activate double buffering to prevent flickering when refreshing display on some devices (especially iOS devices). This field is ignored if rendering is done with 2d-canvas.
  * `resolution` - (number; defaults to `2` on retina devices and `1` elsewhere) Resolution of the renderer.
  * `projectionZoom` - (function(map): Number; defaults to function that returns the average of `map.getMinZoom()` and `map.getMaxZoom()`) returns the projection zoom level. Customizing this option can help if you experience visual artifacts.
+ * `redrawOnZoomAnim` - (bool; default to `false`) A redraw is triggered when zoom animation starts.
 
 *Utils object*
 
 available methods:
 
- * `latLngToLayerPoint(latLng, zoom?)`   - (function) returns `L.Point` projected from `L.LatLng` in the coordinate system of the overlay.
- * `layerPointToLatLng(point, zoom?)`    - (function) returns `L.LatLng` projected back from `L.Point` into the original CRS.
- * `getScale(zoom?)`  - (function) return the current scale factor of the overlay or the scale factor associated to zoom value.
+ * `latLngToLayerPoint(latLng, zoom?)` - (function) returns `L.Point` projected from `L.LatLng` in the coordinate system of the overlay.
+ * `layerPointToLatLng(point, zoom?)` - (function) returns `L.LatLng` projected back from `L.Point` into the original CRS.
+ * `getScale(zoom?)` - (function) return the current scale factor of the overlay or the scale factor associated to zoom value.
  * `getRenderer()` - (function) return the current PIXI renderer.
  * `getContainer()` - (function) return the PIXI container used in the overlay.
  * `getMap()` - (function) return the current map.
 
 ### *Instance methods*
 
-* `redraw()` - (function) trigger a refresh of the layer. This is useful when you modify something in the `container`.
+* `redraw(data)` - (function) trigger a refresh of the layer. `data` is passed as second argument of `drawCallback` function. This is useful for example when you modify something in the `container` or if you want to animate using `PIXI.ticker.Ticker`.
 
 ## Changelog
+
+### 1.4.0 (Mar 25, 2018)
+- Add second argument to `drawCallback`, improving control over redraw logic
+- No need to recompute container transform on `redraw` calls (performance improvement)
 
 ### 1.3.0 (Jan 22, 2018)
 - Add `redraw` method
