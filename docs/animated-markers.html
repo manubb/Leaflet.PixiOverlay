@@ -52,6 +52,7 @@
 			var textures = [resources.plane.texture, resources.bicycle.texture];
 			getJSON('data/cities.json', function(markers) {
 				var map = L.map('map').setView([37.49229399862877, -96.94335937500001], 4);
+
 				L.tileLayer('//stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
 					subdomains: 'abcd',
 					attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
@@ -73,8 +74,9 @@
 						var container = utils.getContainer();
 						var renderer = utils.getRenderer();
 						var project = utils.latLngToLayerPoint;
-						var scale = utils.getScale;
-						var invScale = 1 / scale();
+						var getScale = utils.getScale;
+						var invScale = 1 / getScale();
+
 						if (event.type === 'add') {
 							markers.forEach(function(marker) {
 								var coords = project([marker.latitude, marker.longitude]);
@@ -85,20 +87,21 @@
 								markerSprite.y = coords.y;
 								markerSprite.anchor.set(0.5, 0.5);
 								markerSprite.scale.set(invScale);
-								var tint = d3.color(colorScale(marker.avancement || Math.random() * 100)).rgb();
+								var tint = d3.color(colorScale(Math.random() * 100)).rgb();
 								markerSprite.tint = 256 * (tint.r * 256 + tint.g) + tint.b;
 								container.addChild(markerSprite);
 								markerSprites.push(markerSprite);
 								markerSprite.legend = marker.city || marker.label;
 							});
 						}
+
 						if (event.type === 'zoomanim') {
-							var targetZoom = event.zoom;
+							zoomChangeTs = 0;
+							var targetScale = 1 / getScale(event.zoom);
 							markerSprites.forEach(function(markerSprite) {
 								markerSprite.currentScale = markerSprite.scale.x;
-								markerSprite.targetScale = 1 / scale(targetZoom);
+								markerSprite.targetScale = targetScale;
 							});
-							zoomChangeTs = 0;
 							return;
 						}
 
@@ -108,7 +111,7 @@
 								markerSprite.rotation -= 0.03 * delta;
 							});
 							if (zoomChangeTs !== null) {
-								var duration = 15;
+								var duration = 17;
 								zoomChangeTs += delta;
 								var lambda = zoomChangeTs / duration;
 							  if (lambda > 1) {
@@ -120,20 +123,26 @@
 								  markerSprite.scale.set(markerSprite.currentScale + lambda * (markerSprite.targetScale - markerSprite.currentScale));
 								});
 							}
+							else {
+								markerSprites.forEach(function(markerSprite) {
+									markerSprite.scale.set(invScale);
+								});
+							}
 						}
 						renderer.render(container);
 					}, pixiContainer, {
-						redrawOnZoomAnim: true,
-						doubleBuffering: doubleBuffering
+						doubleBuffering: doubleBuffering,
 					});
 				})();
 
 				pixiLayer.addTo(map);
+
 				var ticker = new PIXI.ticker.Ticker();
 				ticker.add(function(delta) {
 					pixiLayer.redraw({type: 'redraw', delta: delta});
 				});
 				ticker.start();
+				map.on('zoomanim', pixiLayer.redraw, pixiLayer);
 			});
 		});
 	});

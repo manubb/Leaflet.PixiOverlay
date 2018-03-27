@@ -71,6 +71,7 @@
 						var project = utils.latLngToLayerPoint;
 						var scale = utils.getScale();
 						var invScale = 1 / scale;
+
 						if (event.type === 'add') {
 							markers.forEach(function(marker) {
 								var coords = project([marker.latitude, marker.longitude]);
@@ -80,24 +81,28 @@
 								markerSprite.x = coords.x;
 								markerSprite.y = coords.y;
 								markerSprite.anchor.set(0.5, 0.5);
+								markerSprite.scale.set(invScale);
 								var tint = d3.color(colorScale(Math.random() * 100)).rgb();
 								markerSprite.tint = 256 * (tint.r * 256 + tint.g) + tint.b;
 								container.addChild(markerSprite);
 								markerSprites.push(markerSprite);
 							});
 						}
-						if ((event.type === 'add' || event.type === 'moveend') && previousZoom !== zoom) {
+
+						if (event.type === 'moveend' && previousZoom !== zoom) {
 							markerSprites.forEach(function(markerSprite) {
 								markerSprite.scale.set(invScale);
 							});
 							previousZoom = zoom;
 						}
+
 						if (event.type === 'redraw') {
 							var delta = event.delta;
 							markerSprites.forEach(function(markerSprite) {
 								markerSprite.rotation -= 0.03 * delta;
 							});
 						}
+
 						renderer.render(container);
 					}, pixiContainer, {
 						doubleBuffering: doubleBuffering
