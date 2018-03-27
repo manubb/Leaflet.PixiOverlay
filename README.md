@@ -167,7 +167,7 @@ pixiOverlay.addTo(map);
     drawCallback(utils, eventOrCustomData)
 
  * `utils` - helper object. Contains methods to work with layers coordinate system and scaling.
- * `eventOrCustomData` - Contains either the Leaflet event that causes the redraw (`moveend` event or `zoomanim` event if `redrawOnZoomAnim` is set to `true` in configuration object) or a plain object `{type: 'add'}` when the pixi layer is added to the map or the argument of a `redraw` call.
+ * `eventOrCustomData` - Contains either the Leaflet event that causes the redraw (`moveend` event) or a plain object `{type: 'add'}` when the pixi layer is added to the map or the argument of a `redraw` call.
 
 *Overlay options object*
 
@@ -178,7 +178,6 @@ available fields:
  * `doubleBuffering` - (bool; default to `false`) Activate double buffering to prevent flickering when refreshing display on some devices (especially iOS devices). This field is ignored if rendering is done with 2d-canvas.
  * `resolution` - (number; defaults to `2` on retina devices and `1` elsewhere) Resolution of the renderer.
  * `projectionZoom` - (function(map): Number; defaults to function that returns the average of `map.getMinZoom()` and `map.getMaxZoom()`) returns the projection zoom level. Customizing this option can help if you experience visual artifacts.
- * `redrawOnZoomAnim` - (bool; default to `false`) A redraw is triggered when zoom animation starts.
 
 *Utils object*
 
@@ -196,6 +195,10 @@ available methods:
 * `redraw(data)` - (function) trigger a refresh of the layer. `data` is passed as second argument of `drawCallback` function. This is useful for example when you modify something in the `container` or if you want to animate using `PIXI.ticker.Ticker`.
 
 ## Changelog
+
+### 1.4.1 (Mar 27, 2018)
+- Improved behavior when `doubleBuffering` is enabled
+- Remove event listeners on layer remove wih Leaflet@0.7.x
 
 ### 1.4.0 (Mar 25, 2018)
 - Add second argument to `drawCallback`, improving control over redraw logic
