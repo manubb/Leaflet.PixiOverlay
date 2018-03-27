@@ -196,7 +196,7 @@ available methods:
 
 ## Changelog
 
-### 1.4.1 (Mar 27, 2018)
+### 1.4.2 (Mar 27, 2018)
 - Improved behavior when `doubleBuffering` is enabled
 - Remove event listeners on layer remove wih Leaflet 0.7.x
 
