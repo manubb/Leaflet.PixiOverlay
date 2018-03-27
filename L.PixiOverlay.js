@@ -1,5 +1,5 @@
 // Leaflet.PixiOverlay
-// version: 1.4.0
+// version: 1.4.1
 // author: Manuel Baclet <mbaclet@gmail.com>
 // license: MIT
 
@@ -44,10 +44,7 @@
 			resolution: L.Browser.retina ? 2 : 1,
 			// @option projectionZoom(map: map): Number
 			// return the layer projection zoom level
-			projectionZoom: function (map) {return (map.getMaxZoom() + map.getMinZoom()) / 2;},
-			// @option redrawOnZoomAnim: Boolean
-			// Trigger a redraw when zoom animation starts
-			redrawOnZoomAnim: false
+			projectionZoom: function (map) {return (map.getMaxZoom() + map.getMinZoom()) / 2;}
 		},
 
 		initialize: function (drawCallback, pixiContainer, options) {
@@ -74,6 +71,8 @@
 		},
 
 		_setEvents: function () {},
+
+		_removeEvents: function () {},
 
 		onAdd: function (targetMap) {
 			this._setMap(targetMap);
@@ -115,7 +114,7 @@
 					return map.unproject(projectedPoint, zoom);
 				},
 				getScale: function (zoom) {
-					if (zoom === undefined) return _layer._scale;
+					if (zoom === undefined) return map.getZoomScale(map.getZoom(), _layer._initialZoom);
 					else return map.getZoomScale(zoom, _layer._initialZoom);
 				},
 				getRenderer: function () {
@@ -132,6 +131,7 @@
 		},
 
 		onRemove: function () {
+			this._removeEvents();
 			L.DomUtil.remove(this._container);
 		},
 
@@ -149,12 +149,9 @@
 
 		_onAnimZoom: function (e) {
 			this._updateTransform(e.center, e.zoom);
-			if (this.options.redrawOnZoomAnim) {
-				this._drawCallback(this.utils, e);
-			}
 		},
 
-		_onZoom: function () {
+		_onZoom: function (e) {
 			this._updateTransform(this._map.getCenter(), this._map.getZoom());
 		},
 
@@ -171,6 +168,16 @@
 			} else {
 				L.DomUtil.setPosition(this._container, topLeftOffset);
 			}
+		},
+
+		_redraw: function(offset, e) {
+			this._disableLeafletRounding();
+			var shift = this._map.latLngToLayerPoint(this._wgsOrigin)
+				._subtract(this._wgsInitialShift.multiplyBy(this._scale))._subtract(offset);
+			this._pixiContainer.scale.set(this._scale);
+			this._pixiContainer.position.set(shift.x, shift.y);
+			this._drawCallback(this.utils, e);
+			this._enableLeafletRounding();
 		},
 
 		_update: function (e) {
@@ -214,21 +221,19 @@
 				this._renderer.size = size;
 			}
 
-			this._disableLeafletRounding();
-			var shift = this._map.latLngToLayerPoint(this._wgsOrigin)
-				._subtract(this._wgsInitialShift.multiplyBy(this._scale))._subtract(b.min);
-			this._pixiContainer.scale.set(this._scale);
-			this._pixiContainer.position.set(shift.x, shift.y);
-			this._drawCallback(this.utils, e);
-			this._enableLeafletRounding();
-
 			if (this._doubleBuffering) {
-				this._renderer.gl.flush();
-				view.style.visibility = 'visible';
-				this._auxRenderer.view.style.visibility = 'hidden';
+				var self = this;
+				requestAnimationFrame(function() {
+					self._redraw(b.min, e);
+					self._renderer.gl.finish();
+					view.style.visibility = 'visible';
+					self._auxRenderer.view.style.visibility = 'hidden';
+					L.DomUtil.setPosition(container, b.min);
+				});
+			} else {
+				this._redraw(b.min, e);
+				L.DomUtil.setPosition(container, b.min);
 			}
-
-			L.DomUtil.setPosition(container, b.min);
 		},
 
 		_disableLeafletRounding: function () {
@@ -309,6 +314,13 @@
 			var events = this.getEvents();
 			for (var evt in events) {
 				this._map.on(evt, events[evt], this);
+			}
+		};
+
+		pixiOverlayClass._removeEvents = function () {
+			var events = this.getEvents();
+			for (var evt in events) {
+				this._map.off(evt, events[evt], this);
 			}
 		};
 
