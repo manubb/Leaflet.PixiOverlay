@@ -198,7 +198,7 @@ available methods:
 
 ### 1.4.1 (Mar 27, 2018)
 - Improved behavior when `doubleBuffering` is enabled
-- Remove event listeners on layer remove wih Leaflet@0.7.x
+- Remove event listeners on layer remove wih Leaflet 0.7.x
 
 ### 1.4.0 (Mar 25, 2018)
 - Add second argument to `drawCallback`, improving control over redraw logic
