@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html style="height: 100%; margin: 0;">
+<head>
+	<title>Leaflet.PixiOverlay issue14 no mask</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<link rel="stylesheet" href="css/leaflet.css"/>
+	<script src="js/example.min.js"></script>
+</head>
+<body style="height: 100%; margin: 0;">
+<div id="map" style="height: 100%; width: 100%;"></div>
+<script>
+(function() {
+	var map = L.map('map').setView([51.505, -0.09], 13);
+
+	L.tileLayer('http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
+	    maxZoom: 18,
+	    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+	}).addTo(map);
+
+	var width = 2048;
+
+	var marker = new PIXI.Graphics();
+  marker.clear();
+  marker.beginFill(0xffaa00, 0.9);
+  marker.drawCircle(0,  0, width / 2);
+  marker.beginFill(0xffaa00, 0.5);
+  marker.drawCircle(0,  0, width / 4);
+  marker.endFill();
+
+  var pixiContainer = new PIXI.Container()
+  pixiContainer.addChild(marker);
+  var firstDraw = true;
+	var markerCenter  = [51.5, -0.09];
+
+  var pixiOverlay = L.pixiOverlay(function (utils) {
+    var zoom = utils.getMap().getZoom();
+    var container = utils.getContainer();
+    var renderer = utils.getRenderer();
+    var project = utils.latLngToLayerPoint;
+    var scale = utils.getScale();
+
+    if (firstDraw) {
+      var gl = renderer.gl;
+      if (gl) {gl.blendFunc(gl.ONE, gl.ZERO);}
+			projectedMarkerCenter = project(markerCenter);
+			marker.x = projectedMarkerCenter.x;
+			marker.y = projectedMarkerCenter.y;
+			marker.scale.set(1 / scale / 16);
+    }
+    firstDraw = false;
+    renderer.render(container);
+  }, pixiContainer);
+
+  pixiOverlay.addTo(map);
+})();
+</script>
+</body>
+</html>
