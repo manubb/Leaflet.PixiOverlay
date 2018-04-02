@@ -26,9 +26,6 @@
 		.add('marker', 'img/marker-icon.png');
 	document.addEventListener("DOMContentLoaded", function() {
 		loader.load(function(loader, resources) {
-			var colorScale = d3.scaleLinear()
-					.domain([0, 50, 100])
-					.range(["#c6233c", "#ffd300", "#008000"]);
 			var texture = resources.marker.texture;
 			var map = L.map('map').setView([ 48.838565,  2.449264526367], 13);
 			L.tileLayer('//stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
