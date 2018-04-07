@@ -72,8 +72,6 @@
 
 		_setEvents: function () {},
 
-		_removeEvents: function () {},
-
 		onAdd: function (targetMap) {
 			this._setMap(targetMap);
 			if (!this._container) {
@@ -134,7 +132,6 @@
 		},
 
 		onRemove: function () {
-			this._removeEvents();
 			L.DomUtil.remove(this._container);
 		},
 
@@ -310,7 +307,8 @@
 		};
 
 		pixiOverlayClass._addContainer = function () {
-			this._map._panes.overlayPane.appendChild(this._container);
+			this._map.getPanes()[this.options.pane || 'overlayPane']
+				.appendChild(this._container);
 		};
 
 		pixiOverlayClass._setEvents = function () {
@@ -320,7 +318,9 @@
 			}
 		};
 
-		pixiOverlayClass._removeEvents = function () {
+		pixiOverlayClass.onRemove = function () {
+			this._map.getPanes()[this.options.pane || 'overlayPane']
+				.removeChild(this._container);
 			var events = this.getEvents();
 			for (var evt in events) {
 				this._map.off(evt, events[evt], this);
