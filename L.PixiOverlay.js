@@ -162,7 +162,8 @@
 				destCenterPoint = this._map.project(center, zoom),
 				centerOffset = destCenterPoint.subtract(currentCenterPoint),
 
-				topLeftOffset = viewHalf.multiplyBy(1 - scale).subtract(centerOffset).subtract(this._map._getMapPanePos()).subtract(this._map.getSize().multiplyBy(this.options.padding));
+				topLeftOffset = viewHalf.multiplyBy(1 - scale).subtract(centerOffset).subtract(this._map._getMapPanePos())
+					.subtract(this._map.getSize().multiplyBy(this.options.padding));
 
 			if (L.Browser.any3d) {
 				L.DomUtil.setTransform(this._container, topLeftOffset, scale);
