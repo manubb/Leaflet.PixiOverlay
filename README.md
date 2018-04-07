@@ -39,6 +39,8 @@ Leaflet.PixiOverlay is available as a npm package:
 npm install leaflet-pixi-overlay
 ```
 
+or can be included in a page with [jsDelivr CDN](https://www.jsdelivr.com/package/npm/leaflet-pixi-overlay).
+
 ## Usage
 
 Include Pixi.js and the PixiOverlay libraries:
@@ -178,6 +180,7 @@ available fields:
  * `doubleBuffering` - (bool; default to `false`) Activate double buffering to prevent flickering when refreshing display on some devices (especially iOS devices). This field is ignored if rendering is done with 2d-canvas.
  * `resolution` - (number; defaults to `2` on retina devices and `1` elsewhere) Resolution of the renderer.
  * `projectionZoom` - (function(map): Number; defaults to function that returns the average of `map.getMinZoom()` and `map.getMaxZoom()`) returns the projection zoom level. Customizing this option can help if you experience visual artifacts.
+ * `pane` - (string; defaults to `'overlayPane'`) The Leaflet [pane](http://leafletjs.com/reference-1.3.0.html#map-pane) where the overlay container is inserted.
 
 *Utils object*
 
@@ -211,7 +214,6 @@ available methods:
 - Add `doubleBuffering` option to get rid of flickering on iOS devices
 
 ### 1.1.3 (Jan 20, 2018)
-
 - Minor improvements
 - Add support for leaflet@0.7.x (thanks to [dzwiedzmin](https://github.com/dzwiedzmin))
 
