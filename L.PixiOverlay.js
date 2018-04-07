@@ -78,6 +78,7 @@
 			this._setMap(targetMap);
 			if (!this._container) {
 				var container = this._container = L.DomUtil.create('div', 'leaflet-pixi-overlay');
+				container.style.position = 'absolute';
 				this._renderer = PIXI.autoDetectRenderer(this._rendererOptions);
 				container.appendChild(this._renderer.view);
 				if (this._zoomAnimated) {
