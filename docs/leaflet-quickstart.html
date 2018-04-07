@@ -71,12 +71,15 @@
 				pixiContainer.interactive = true;
 				pixiContainer.interactiveChildren = true;
 				pixiContainer.buttonMode = true;
-				pixiContainer.on('click', function(e) {
+				function onSelection(e) {
 					var target = e.target;
 					if (target && target.popup) {
 						setTimeout(function() {target.popup.openOn(map);});
 					}
-				});
+				}
+				pixiContainer.on('click', onSelection);
+				pixiContainer.on('tap', onSelection);
+
 				var doubleBuffering = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
 				return L.pixiOverlay(function(utils) {
