@@ -80,6 +80,7 @@
 				var container = this._container = L.DomUtil.create('div', 'leaflet-pixi-overlay');
 				container.style.position = 'absolute';
 				this._renderer = PIXI.autoDetectRenderer(this._rendererOptions);
+				this._renderer.plugins.interaction.autoPreventDefault = false;
 				container.appendChild(this._renderer.view);
 				if (this._zoomAnimated) {
 					L.DomUtil.addClass(container, 'leaflet-zoom-animated');
@@ -87,6 +88,7 @@
 				}
 				if (this._doubleBuffering) {
 					this._auxRenderer = PIXI.autoDetectRenderer(this._rendererOptions);
+					this._auxRenderer.plugins.interaction.autoPreventDefault = false;
 					container.appendChild(this._auxRenderer.view);
 					this._renderer.view.style.position = 'absolute';
 					this._auxRenderer.view.style.position = 'absolute';
