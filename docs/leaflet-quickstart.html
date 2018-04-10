@@ -69,16 +69,7 @@
 				var pixiContainer = new PIXI.Container();
 				pixiContainer.addChild(marker, triangle, circle);
 				pixiContainer.interactive = true;
-				pixiContainer.interactiveChildren = true;
 				pixiContainer.buttonMode = true;
-				function onSelection(e) {
-					var target = e.target;
-					if (target && target.popup) {
-						setTimeout(function() {target.popup.openOn(map);});
-					}
-				}
-				pixiContainer.on('click', onSelection);
-				pixiContainer.on('tap', onSelection);
 
 				var doubleBuffering = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
@@ -94,6 +85,21 @@
 					var scale = utils.getScale();
 
 					if (firstDraw) {
+						var getRenderer = utils.getRenderer;
+						utils.getMap().on('click', function(e) {
+							// not really nice but much better than before
+							// good starting point for improvements
+							var interaction = utils.getRenderer().plugins.interaction;
+							var pointerEvent = e.originalEvent;
+							var pixiPoint = new PIXI.Point();
+							// get global click position in pixiPoint:
+							interaction.mapPositionToPoint(pixiPoint, pointerEvent.clientX, pointerEvent.clientY);
+							// get what is below the click if any:
+							var target = interaction.hitTest(pixiPoint, container);
+							if (target && target.popup) {
+								target.popup.openOn(map);
+							}
+						});
 						var markerCoords = project(markerLatLng);
 						marker.x = markerCoords.x;
 						marker.y = markerCoords.y;
