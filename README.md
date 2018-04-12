@@ -181,6 +181,7 @@ available fields:
  * `resolution` - (number; defaults to `2` on retina devices and `1` elsewhere) Resolution of the renderer.
  * `projectionZoom` - (function(map): Number; defaults to function that returns the average of `map.getMinZoom()` and `map.getMaxZoom()`) returns the projection zoom level. Customizing this option can help if you experience visual artifacts.
  * `pane` - (string; defaults to `'overlayPane'`) The Leaflet [pane](http://leafletjs.com/reference-1.3.0.html#map-pane) where the overlay container is inserted.
+ * `interactionManager` - (string; defaults to `'default'`) Customize [PIXI Interaction Manager](http://pixijs.download/release/docs/PIXI.interaction.InteractionManager.html). If value is `'flow'`, set property `autoPreventDefault` to false; if it is `'destroy'`, call `destroy` method on the manager; else use PIXI default settings.
 
 *Utils object*
 
