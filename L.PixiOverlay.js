@@ -32,10 +32,10 @@
 			// How much to extend the clip area around the map view (relative to its size)
 			// e.g. 0.1 would be 10% of map view in each direction
 			padding: 0.1,
-			// @option forceCanvas: Boolean
+			// @option forceCanvas: Boolean = false
 			// Force use of a 2d-canvas
 			forceCanvas: false,
-			// @option doubleBuffering: Boolean
+			// @option doubleBuffering: Boolean = false
 			// Help to prevent flicker when refreshing display on some devices (e.g. iOS devices)
 			// It is ignored if rendering is done with 2d-canvas
 			doubleBuffering: false,
