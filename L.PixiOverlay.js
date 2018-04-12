@@ -159,11 +159,9 @@
 			var scale = this._map.getZoomScale(zoom, this._zoom),
 				viewHalf = this._map.getSize().multiplyBy(0.5 + this.options.padding),
 				currentCenterPoint = this._map.project(this._center, zoom),
-				destCenterPoint = this._map.project(center, zoom),
-				centerOffset = destCenterPoint.subtract(currentCenterPoint),
 
-				topLeftOffset = viewHalf.multiplyBy(1 - scale).subtract(centerOffset).subtract(this._map._getMapPanePos())
-					.subtract(this._map.getSize().multiplyBy(this.options.padding));
+				topLeftOffset = viewHalf.multiplyBy(-scale).add(currentCenterPoint)
+					.subtract(this._map._getNewPixelOrigin(center, zoom));
 
 			if (L.Browser.any3d) {
 				L.DomUtil.setTransform(this._container, topLeftOffset, scale);
