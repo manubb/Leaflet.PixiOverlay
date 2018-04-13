@@ -161,7 +161,8 @@
 					prevZoom = zoom;
 					renderer.render(container);
 				}, pixiContainer, {
-					doubleBuffering: doubleBuffering
+					doubleBuffering: doubleBuffering,
+					interactionManager: 'flow'
 				});
 			})();
 			pixiOverlay.addTo(map);
