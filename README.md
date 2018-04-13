@@ -181,7 +181,8 @@ available fields:
  * `resolution` - (number; defaults to `2` on retina devices and `1` elsewhere) Resolution of the renderer.
  * `projectionZoom` - (function(map): Number; defaults to function that returns the average of `map.getMinZoom()` and `map.getMaxZoom()`) returns the projection zoom level. Customizing this option can help if you experience visual artifacts.
  * `pane` - (string; defaults to `'overlayPane'`) The Leaflet [pane](http://leafletjs.com/reference-1.3.0.html#map-pane) where the overlay container is inserted.
- * `interactionManager` - (string; defaults to `'default'`) Customize [PIXI Interaction Manager](http://pixijs.download/release/docs/PIXI.interaction.InteractionManager.html). If value is `'flow'`, set property `autoPreventDefault` to false; if it is `'destroy'`, call `destroy` method on the manager; else use PIXI default settings.
+ * `destroyInteractionManager` - (bool; defaults to `false`) Destroy [PIXI Interaction Manager](http://pixijs.download/release/docs/PIXI.interaction.InteractionManager.html). This is useful when you do not need to use PIXI interaction.
+ * `autoPreventDefault` - (bool; defaults to `true`) Customize [PIXI Interaction Manager](http://pixijs.download/release/docs/PIXI.interaction.InteractionManager.html) `autoPreventDefault` property. This option is ignored if `destroyInteractionManager` is `true`. This should be set to `false` in most situations to let all dom events flow from PIXI to leaflet but it set by default for compatibility.
 
 *Utils object*
 
@@ -199,6 +200,11 @@ available methods:
 * `redraw(data)` - (function) trigger a refresh of the layer. `data` is passed as second argument of `drawCallback` function. This is useful for example when you modify something in the `container` or if you want to animate using `PIXI.ticker.Ticker`.
 
 ## Changelog
+
+### 1.5.0 (Apr 13, 2018)
+- Bug fixes
+- Add options for PIXI Interaction Manager
+- Improved documentation
 
 ### 1.4.2 (Mar 27, 2018)
 - Improved behavior when `doubleBuffering` is enabled

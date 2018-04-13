@@ -25,10 +25,10 @@
 	var round = L.Point.prototype._round;
 	var no_round = function () {return this;};
 
-	function setInteractionManager(interactionManager, option) {
-		if (option === 'destroy') {
+	function setInteractionManager(interactionManager, destroyInteractionManager, autoPreventDefault) {
+		if (destroyInteractionManager) {
 			interactionManager.destroy();
-		} else if (option === 'flow') {
+		} else if (!autoPreventDefault) {
 			interactionManager.autoPreventDefault = false;
 		}
 	}
@@ -53,12 +53,13 @@
 			// @option projectionZoom(map: map): Number
 			// return the layer projection zoom level
 			projectionZoom: function (map) {return (map.getMaxZoom() + map.getMinZoom()) / 2;},
-			// @option interactionManager: string = 'default'
-			// option of PIXI interaction manager
-			// 'default': default option
-			// 'flow': set autoPreventDefault property to false
-			// 'destroy': destroy the interaction manager
-			interactionManager: 'default',
+			// @option destroyInteractionManager:  Boolean = false
+			// Destroy PIXI Interaction Manager
+			destroyInteractionManager: false,
+			// @option
+			// Customize PIXI Interaction Manager autoPreventDefault property
+			// This option is ignored if destroyInteractionManager is set
+			autoPreventDefault: true
 		},
 
 		initialize: function (drawCallback, pixiContainer, options) {
@@ -92,7 +93,11 @@
 				var container = this._container = L.DomUtil.create('div', 'leaflet-pixi-overlay');
 				container.style.position = 'absolute';
 				this._renderer = PIXI.autoDetectRenderer(this._rendererOptions);
-				setInteractionManager(this._renderer.plugins.interaction, this.options.interactionManager);
+				setInteractionManager(
+					this._renderer.plugins.interaction,
+					this.options.destroyInteractionManager,
+					this.options.autoPreventDefault
+				);
 				container.appendChild(this._renderer.view);
 				if (this._zoomAnimated) {
 					L.DomUtil.addClass(container, 'leaflet-zoom-animated');
@@ -100,7 +105,11 @@
 				}
 				if (this._doubleBuffering) {
 					this._auxRenderer = PIXI.autoDetectRenderer(this._rendererOptions);
-					setInteractionManager(this._auxRenderer.plugins.interaction, this.options.interactionManager);
+					setInteractionManager(
+						this._auxRenderer.plugins.interaction,
+						this.options.destroyInteractionManager,
+						this.options.autoPreventDefault
+					);
 					container.appendChild(this._auxRenderer.view);
 					this._renderer.view.style.position = 'absolute';
 					this._auxRenderer.view.style.position = 'absolute';
