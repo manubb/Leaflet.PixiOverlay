@@ -200,7 +200,8 @@
 						prevZoom = zoom;
 						renderer.render(container);
 					}, pixiContainer, {
-						doubleBuffering: doubleBuffering
+						doubleBuffering: doubleBuffering,
+						destroyInteractionManager: true
 					});
 				})();
 

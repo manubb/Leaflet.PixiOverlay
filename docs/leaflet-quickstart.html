@@ -162,7 +162,7 @@
 					renderer.render(container);
 				}, pixiContainer, {
 					doubleBuffering: doubleBuffering,
-					interactionManager: 'flow'
+					autoPreventDefault: false
 				});
 			})();
 			pixiOverlay.addTo(map);
