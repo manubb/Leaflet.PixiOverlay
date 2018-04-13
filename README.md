@@ -182,7 +182,7 @@ available fields:
  * `projectionZoom` - (function(map): Number; defaults to function that returns the average of `map.getMinZoom()` and `map.getMaxZoom()`) returns the projection zoom level. Customizing this option can help if you experience visual artifacts.
  * `pane` - (string; defaults to `'overlayPane'`) The Leaflet [pane](http://leafletjs.com/reference-1.3.0.html#map-pane) where the overlay container is inserted.
  * `destroyInteractionManager` - (bool; defaults to `false`) Destroy [PIXI Interaction Manager](http://pixijs.download/release/docs/PIXI.interaction.InteractionManager.html). This is useful when you do not need to use PIXI interaction.
- * `autoPreventDefault` - (bool; defaults to `true`) Customize [PIXI Interaction Manager](http://pixijs.download/release/docs/PIXI.interaction.InteractionManager.html) `autoPreventDefault` property. This option is ignored if `destroyInteractionManager` is `true`. This should be set to `false` in most situations to let all dom events flow from PIXI to leaflet but it set by default for compatibility.
+ * `autoPreventDefault` - (bool; defaults to `true`) Customize [PIXI Interaction Manager](http://pixijs.download/release/docs/PIXI.interaction.InteractionManager.html) `autoPreventDefault` property. This option is ignored if `destroyInteractionManager` is `true`. This should be set to `false` in most situations to let all dom events flow from PIXI to leaflet but it is set by default for compatibility reason.
 
 *Utils object*
 
