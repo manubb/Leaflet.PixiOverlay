@@ -203,6 +203,9 @@ available methods:
 
 ## Changelog
 
+### 1.6.0 (Nov 26, 2018)
+- Add `preserveDrawingBuffer` and `clearBeforeRender` options
+
 ### 1.5.0 (Apr 13, 2018)
 - Bug fixes
 - Add options for PIXI Interaction Manager
