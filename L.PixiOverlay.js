@@ -59,7 +59,13 @@
 			// @option
 			// Customize PIXI Interaction Manager autoPreventDefault property
 			// This option is ignored if destroyInteractionManager is set
-			autoPreventDefault: true
+			autoPreventDefault: true,
+			// @option resolution: Boolean = false
+			// Enables drawing buffer preservation
+			preserveDrawingBuffer: false,
+			// @option resolution: Boolean = true
+			// Clear the canvas before the new render pass
+			clearBeforeRender: true
 		},
 
 		initialize: function (drawCallback, pixiContainer, options) {
@@ -71,7 +77,9 @@
 				transparent: true,
 				resolution: this.options.resolution,
 				antialias: true,
-				forceCanvas: this.options.forceCanvas
+				forceCanvas: this.options.forceCanvas,
+				preserveDrawingBuffer: this.options.preserveDrawingBuffer,
+				clearBeforeRender: this.options.clearBeforeRender
 			};
 			this._doubleBuffering = PIXI.utils.isWebGLSupported() && !this.options.forceCanvas &&
 				this.options.doubleBuffering;
