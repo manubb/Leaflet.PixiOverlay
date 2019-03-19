@@ -65,41 +65,41 @@
 					var renderer = utils.getRenderer();
 					var project = utils.latLngToLayerPoint;
 					if (firstDraw) {
-            var geojson = topojson.feature(topo, topo.objects.usStates);
+						var geojson = topojson.feature(topo, topo.objects.usStates);
 
-            function drawPoly(color, alpha) {
-              return function(poly) {
-                var shape = new PIXI.Polygon(poly[0].map(function(point) {
-                  var proj = project([point[1], point[0]]);
-                  return new PIXI.Point(proj.x, proj.y);
-                }));
-                container.beginFill(color, alpha);
-                container.drawShape(shape);
-                if (poly.length > 1) {
-                  for (var i = 1; i < poly.length; i++) {
-                    var hole = new PIXI.Polygon(poly[i].map(function(point) {
-                      var proj = project([point[1], point[0]]);
-                      return new PIXI.Point(proj.x, proj.y);
-                    }));
-                    container.drawShape(hole);
-                    container.addHole();
-                  }
-                }
-              };
-            }
-            geojson.features.forEach(function(feature, index) {
-              var alpha, color;
-              var tint = d3.color(colorScale(Math.random() * 100)).rgb();
-              color = 256 * (tint.r * 256 + tint.g) + tint.b;
-              alpha = 0.8;
-              if (feature.geometry === null) return;
+						function drawPoly(color, alpha) {
+							return function(poly) {
+								var shape = new PIXI.Polygon(poly[0].map(function(point) {
+									var proj = project([point[1], point[0]]);
+									return new PIXI.Point(proj.x, proj.y);
+								}));
+								container.beginFill(color, alpha);
+								container.drawShape(shape);
+								if (poly.length > 1) {
+									for (var i = 1; i < poly.length; i++) {
+										var hole = new PIXI.Polygon(poly[i].map(function(point) {
+											var proj = project([point[1], point[0]]);
+											return new PIXI.Point(proj.x, proj.y);
+										}));
+										container.drawShape(hole);
+										container.addHole();
+									}
+								}
+							};
+						}
+						geojson.features.forEach(function(feature, index) {
+							var alpha, color;
+							var tint = d3.color(colorScale(Math.random() * 100)).rgb();
+							color = 256 * (tint.r * 256 + tint.g) + tint.b;
+							alpha = 0.8;
+							if (feature.geometry === null) return;
 
-              if (feature.geometry.type === 'Polygon') {
-                drawPoly(color, alpha)(feature.geometry.coordinates);
-              } else if (feature.geometry.type == 'MultiPolygon') {
-                feature.geometry.coordinates.forEach(drawPoly(color, alpha));
-              }
-            });
+							if (feature.geometry.type === 'Polygon') {
+								drawPoly(color, alpha)(feature.geometry.coordinates);
+							} else if (feature.geometry.type == 'MultiPolygon') {
+								feature.geometry.coordinates.forEach(drawPoly(color, alpha));
+							}
+						});
 					}
 					firstDraw = false;
 					renderer.render(container);

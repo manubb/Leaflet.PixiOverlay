@@ -76,8 +76,8 @@
 							markers.forEach(function(marker) {
 								var coords = project([marker.latitude, marker.longitude]);
 								var index = Math.floor(Math.random() * textures.length);
-                var markerSprite = new PIXI.Sprite(textures[index]);
-                markerSprite.targetScale = invScale * (Math.random() * 4);
+								var markerSprite = new PIXI.Sprite(textures[index]);
+								markerSprite.targetScale = invScale * (Math.random() * 4);
 								markerSprite.textureIndex = index;
 								markerSprite.x = coords.x;
 								markerSprite.y = coords.y;
@@ -110,12 +110,12 @@
 								var duration = 100;
 								zoomChangeTs += delta;
 								var lambda = zoomChangeTs / duration;
-							  if (lambda > 1) {
-							  	lambda = 1;
-							  	zoomChangeTs = null;
-							  }
-							  markerSprites.forEach(function(markerSprite) {
-								  markerSprite.scale.set(markerSprite.currentScale + lambda * (markerSprite.targetScale - markerSprite.currentScale));
+								if (lambda > 1) {
+									lambda = 1;
+									zoomChangeTs = null;
+								}
+								markerSprites.forEach(function(markerSprite) {
+									markerSprite.scale.set(markerSprite.currentScale + lambda * (markerSprite.targetScale - markerSprite.currentScale));
 								});
 							}
 							else {
@@ -131,15 +131,15 @@
 					});
 				})();
 
-        pixiLayer.addTo(map);
-        let prevTime = 0;
-        const redraw = (time) => {
-          pixiLayer.redraw({type: 'redraw', delta: (time - prevTime) / 16});
-          prevTime = time;
-          requestAnimationFrame(redraw);
-        }
+				pixiLayer.addTo(map);
+				let prevTime = 0;
+				const redraw = (time) => {
+					pixiLayer.redraw({type: 'redraw', delta: (time - prevTime) / 16});
+					prevTime = time;
+					requestAnimationFrame(redraw);
+				}
 
-        redraw(0);
+				redraw(0);
 				map.on('zoomanim', pixiLayer.redraw, pixiLayer);
 			});
 		});
