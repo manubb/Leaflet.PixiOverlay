@@ -6,7 +6,6 @@
 	<meta name="viewport" content="width=device-width">
 	<link rel="stylesheet" href="css/leaflet.css"/>
 	<script src="js/example.min.js"></script>
-	<script src="js/bezier-easing.js"></script>
 	<script src="js/tools.min.js"></script>
 </head>
 <body style="height: 100%; margin: 0; overflow: hidden;">
@@ -39,7 +38,7 @@
 		xhr.send();
 	}
 
-	var loader = new PIXI.Loader();
+	var loader = new PIXI.loaders.Loader();
 	loader
 		.add('plane', 'img/plane.png')
 		.add('bicycle', 'img/bicycle.png');

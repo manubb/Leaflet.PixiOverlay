@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html style="height: 100%; margin: 0;">
+<head>
+	<title>Leaflet.PixiOverlay: 2017 French presidential election, first round</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<link rel="stylesheet" href="css/leaflet.css"/>
+	<link rel="stylesheet" href="css/carte.css"/>
+	<script src="js/example.min.js"></script>
+	<script src="js/tools.min.js"></script>
+</head>
+<body style="height: 100%; margin: 0; overflow: hidden;">
+<div id="map" style="height: 100%; width: 100%;" class="cartes">
+	<div class="legend geometry top center hide">
+		<div class="wrapper">
+			<div class="content"></div>
+		</div>
+	</div>
+</div>
+<script>
+	function getJSON(url, successHandler, errorHandler) {
+		var xhr = typeof XMLHttpRequest != 'undefined'
+			? new XMLHttpRequest()
+			: new ActiveXObject('Microsoft.XMLHTTP');
+		xhr.open('get', url, true);
+		xhr.onreadystatechange = function() {
+			var status;
+			var data;
+			if (xhr.readyState == 4) {
+				status = xhr.status;
+				if (status == 200) {
+					data = JSON.parse(xhr.responseText);
+					successHandler && successHandler(data);
+				} else {
+					errorHandler && errorHandler(status);
+				}
+			}
+		};
+		xhr.send();
+	}
+
+	document.addEventListener("DOMContentLoaded", function() {
+		getJSON('data/us.topojson', function(topo) {
+			var mainLegend = document.querySelector('.main-legend');
+			var map = L.map('map').setView([46.23, -106.96], 4);
+			var hash = new L.Hash(map);
+			L.tileLayer('//stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
+				subdomains: 'abcd',
+				attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+				minZoom: 2,
+				maxZoom: 12
+			}).addTo(map);
+			map.attributionControl.setPosition('bottomleft');
+			map.zoomControl.setPosition('bottomright');
+
+			var pixiLayer = (function() {
+				var firstDraw = true;
+				var colorScale = d3.scaleLinear()
+					.domain([0, 50, 100])
+					.range(["#c6233c", "#ffd300", "#008000"]);
+				var pixiContainer = new PIXI.Graphics();
+				var doubleBuffering = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+				return L.pixiOverlay(function(utils) {
+					var container = utils.getContainer();
+					var renderer = utils.getRenderer();
+					var project = utils.latLngToLayerPoint;
+					if (firstDraw) {
+            var geojson = topojson.feature(topo, topo.objects.usStates);
+
+            function drawPoly(color, alpha) {
+              return function(poly) {
+                var shape = new PIXI.Polygon(poly[0].map(function(point) {
+                  var proj = project([point[1], point[0]]);
+                  return new PIXI.Point(proj.x, proj.y);
+                }));
+                container.beginFill(color, alpha);
+                container.drawShape(shape);
+                if (poly.length > 1) {
+                  for (var i = 1; i < poly.length; i++) {
+                    var hole = new PIXI.Polygon(poly[i].map(function(point) {
+                      var proj = project([point[1], point[0]]);
+                      return new PIXI.Point(proj.x, proj.y);
+                    }));
+                    container.drawShape(hole);
+                    container.addHole();
+                  }
+                }
+              };
+            }
+            geojson.features.forEach(function(feature, index) {
+              var alpha, color;
+              var tint = d3.color(colorScale(Math.random() * 100)).rgb();
+              color = 256 * (tint.r * 256 + tint.g) + tint.b;
+              alpha = 0.8;
+              if (feature.geometry === null) return;
+
+              if (feature.geometry.type === 'Polygon') {
+                drawPoly(color, alpha)(feature.geometry.coordinates);
+              } else if (feature.geometry.type == 'MultiPolygon') {
+                feature.geometry.coordinates.forEach(drawPoly(color, alpha));
+              }
+            });
+					}
+					firstDraw = false;
+					renderer.render(container);
+				}, pixiContainer, {
+					doubleBuffering: doubleBuffering,
+					destroyInteractionManager: true
+				});
+			})();
+			pixiLayer.addTo(map);
+		});
+	});
+</script>
+</body>
+</html>
