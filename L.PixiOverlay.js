@@ -1,25 +1,25 @@
 // Leaflet.PixiOverlay
-// version: 1.6.0
+// version: 1.7.0
 // author: Manuel Baclet <mbaclet@gmail.com>
 // license: MIT
 
 (function (factory) {
-		if (typeof define === 'function' && define.amd) {
-				// AMD
-				define(['leaflet', 'pixi.js'], factory);
-		} else if (typeof module !== 'undefined') {
-				// Node/CommonJS
-				module.exports = factory(require('leaflet'), require('pixi.js'));
-		} else {
-				// Browser globals
-				if (typeof window.L === 'undefined') {
-						throw new Error('Leaflet must be loaded first');
-				}
-				if (typeof window.PIXI === 'undefined') {
-						throw new Error('Pixi.js must be loaded first');
-				}
-				factory(window.L, window.PIXI);
+	if (typeof define === 'function' && define.amd) {
+		// AMD
+		define(['leaflet', 'pixi.js'], factory);
+	} else if (typeof module !== 'undefined') {
+		// Node/CommonJS
+		module.exports = factory(require('leaflet'), require('pixi.js'));
+	} else {
+		// Browser globals
+		if (typeof window.L === 'undefined') {
+			throw new Error('Leaflet must be loaded first');
 		}
+		if (typeof window.PIXI === 'undefined') {
+			throw new Error('Pixi.js must be loaded first');
+		}
+		factory(window.L, window.PIXI);
+	}
 }(function (L, PIXI) {
 
 	var round = L.Point.prototype._round;
@@ -237,7 +237,10 @@
 
 			if (!this._renderer.size || this._renderer.size.x !== size.x || this._renderer.size.y !== size.y) {
 				if (this._renderer.gl) {
-					this._renderer.resolution = this._renderer.rootRenderTarget.resolution = this.options.resolution;
+					this._renderer.resolution = this.options.resolution;
+					if (this._renderer.rootRenderTarget) {
+						this._renderer.rootRenderTarget.resolution = this.options.resolution;
+					}
 				}
 				this._renderer.resize(size.x, size.y);
 				view.style.width = size.x + 'px';
@@ -245,7 +248,11 @@
 				if (this._renderer.gl) {
 					var gl = this._renderer.gl;
 					if (gl.drawingBufferWidth !== this._renderer.width) {
-						this._renderer.resolution = this._renderer.rootRenderTarget.resolution = this.options.resolution * gl.drawingBufferWidth / this._renderer.width;
+						var resolution = this.options.resolution * gl.drawingBufferWidth / this._renderer.width;
+						this._renderer.resolution = resolution;
+						if (this._renderer.rootRenderTarget) {
+							this._renderer.rootRenderTarget.resolution = resolution;
+						}
 						this._renderer.resize(size.x, size.y);
 					}
 				}

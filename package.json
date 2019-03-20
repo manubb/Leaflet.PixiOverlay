@@ -2,7 +2,7 @@
   "name": "leaflet-pixi-overlay",
   "description": "Leaflet Plugin: Pixi.js Overlay",
   "author": "Manuel Baclet <mbaclet@gmail.com>",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "main": "L.PixiOverlay.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -39,7 +39,7 @@
     "rbush": "^2.0.2",
     "template-mb": "^2.0.6",
     "topojson-client": "^3.0.0",
-    "uglify-js": "^3.4.9"
+    "uglify-js": "^3.5.0"
   },
   "bugs": {
     "url": "https://github.com/manubb/Leaflet.PixiOverlay/issues"

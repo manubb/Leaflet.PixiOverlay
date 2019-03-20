@@ -203,6 +203,9 @@ available methods:
 
 ## Changelog
 
+### 1.7.0 (Mar 20, 2019)
+- Add basic support for pixi.js-legacy@5
+
 ### 1.6.0 (Nov 26, 2018)
 - Add `preserveDrawingBuffer` and `clearBeforeRender` options
 
