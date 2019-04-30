@@ -1,5 +1,5 @@
 // Leaflet.PixiOverlay
-// version: 1.7.0
+// version: 1.8.0
 // author: Manuel Baclet <mbaclet@gmail.com>
 // license: MIT
 
@@ -65,7 +65,10 @@
 			preserveDrawingBuffer: false,
 			// @option resolution: Boolean = true
 			// Clear the canvas before the new render pass
-			clearBeforeRender: true
+			clearBeforeRender: true,
+			// @option shouldRedrawOnMove(e: moveEvent): Boolean
+			// filter move events that should trigger a layer redraw
+			shouldRedrawOnMove: function () {return false;},
 		},
 
 		initialize: function (drawCallback, pixiContainer, options) {
@@ -169,8 +172,8 @@
 		getEvents: function () {
 			var events = {
 				zoom: this._onZoom,
-				moveend: this._update,
-				zoomend: this._zoomChange
+				move: this._onMove,
+				moveend: this._update
 			};
 			if (this._zoomAnimated) {
 				events.zoomanim = this._onAnimZoom;
@@ -178,18 +181,26 @@
 			return events;
 		},
 
+		_onZoom: function () {
+			var zoom = this._map.getZoom();
+			this._updateTransform(this._map.getCenter(), zoom);
+			this._scale = this._map.getZoomScale(zoom, this._initialZoom);
+		},
+
 		_onAnimZoom: function (e) {
 			this._updateTransform(e.center, e.zoom);
 		},
 
-		_onZoom: function (e) {
-			this._updateTransform(this._map.getCenter(), this._map.getZoom());
+		_onMove: function(e) {
+			if (this.options.shouldRedrawOnMove(e)) {
+				this._update(e);
+			}
 		},
 
 		_updateTransform: function (center, zoom) {
-			var scale = this._map.getZoomScale(zoom, this._zoom),
+			var scale = this._map.getZoomScale(zoom, this._map.getZoom()),
 				viewHalf = this._map.getSize().multiplyBy(0.5 + this.options.padding),
-				currentCenterPoint = this._map.project(this._center, zoom),
+				currentCenterPoint = this._map.project(this._map.getCenter(), zoom),
 
 				topLeftOffset = viewHalf.multiplyBy(-scale).add(currentCenterPoint)
 					.subtract(this._map._getNewPixelOrigin(center, zoom));
@@ -221,8 +232,6 @@
 				min = this._map.containerPointToLayerPoint(mapSize.multiplyBy(-p)).round();
 
 			this._bounds = new L.Bounds(min, min.add(mapSize.multiplyBy(1 + p * 2)).round());
-			this._center = this._map.getCenter();
-			this._zoom = this._map.getZoom();
 
 			if (this._doubleBuffering) {
 				var currentRenderer = this._renderer;
@@ -280,10 +289,6 @@
 
 		_enableLeafletRounding: function () {
 			L.Point.prototype._round = round;
-		},
-
-		_zoomChange: function () {
-			this._scale = this._map.getZoomScale(this._map.getZoom(), this._initialZoom);
 		},
 
 		redraw: function (data) {

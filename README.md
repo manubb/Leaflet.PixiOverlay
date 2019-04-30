@@ -185,6 +185,7 @@ available fields:
  * `autoPreventDefault` - (bool; defaults to `true`) Customize [PIXI Interaction Manager](http://pixijs.download/release/docs/PIXI.interaction.InteractionManager.html) `autoPreventDefault` property. This option is ignored if `destroyInteractionManager` is `true`. This should be set to `false` in most situations to let all dom events flow from PIXI to leaflet but it is set by default for compatibility reason.
  * `preserveDrawingBuffer` - (bool; defaults to `false`) Enables drawing buffer preservation, enable this if you need to call toDataUrl on the webgl context.
  * `clearBeforeRender` - (bool; defaults to `true`) This sets if the renderer will clear the canvas or not before the new render pass.
+ * `shouldRedrawOnMove` - (function(e: moveEvent): Boolean; defaults to `function () {return false;}`) Move events trigger a redraw when this function returns `true`. For example using `function (e) {return e.flyTo || e.pinch;}` will trigger redraws during `flyTo` animation and pinch zooms.
 
 *Utils object*
 
@@ -202,6 +203,10 @@ available methods:
 * `redraw(data)` - (function) trigger a refresh of the layer. `data` is passed as second argument of `drawCallback` function. This is useful for example when you modify something in the `container` or if you want to animate using `PIXI.ticker.Ticker`.
 
 ## Changelog
+
+### 1.8.0 (Apr 30, 2019)
+- Add support for redrawing the layer during flyTo animations and pinch zooms. (This is disabled by default. See `shouldRedrawOnMove` option to enable it,)
+- Both pixi.js@5 and pixi.js-legacy@5 should be supported now.
 
 ### 1.7.0 (Mar 20, 2019)
 - Add basic support for pixi.js-legacy@5
