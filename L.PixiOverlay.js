@@ -1,5 +1,5 @@
 // Leaflet.PixiOverlay
-// version: 1.8.0
+// version: 1.8.1
 // author: Manuel Baclet <mbaclet@gmail.com>
 // license: MIT
 
@@ -134,7 +134,6 @@
 			this._wgsOrigin = L.latLng([0, 0]);
 			this._wgsInitialShift = map.project(this._wgsOrigin, this._initialZoom);
 			this._mapInitialZoom = map.getZoom();
-			this._scale = map.getZoomScale(this._mapInitialZoom, this._initialZoom);
 			var _layer = this;
 
 			this.utils = {
@@ -182,9 +181,7 @@
 		},
 
 		_onZoom: function () {
-			var zoom = this._map.getZoom();
-			this._updateTransform(this._map.getCenter(), zoom);
-			this._scale = this._map.getZoomScale(zoom, this._initialZoom);
+			this._updateTransform(this._map.getCenter(), this._map.getZoom());
 		},
 
 		_onAnimZoom: function (e) {
@@ -198,9 +195,9 @@
 		},
 
 		_updateTransform: function (center, zoom) {
-			var scale = this._map.getZoomScale(zoom, this._map.getZoom()),
+			var scale = this._map.getZoomScale(zoom, this._zoom),
 				viewHalf = this._map.getSize().multiplyBy(0.5 + this.options.padding),
-				currentCenterPoint = this._map.project(this._map.getCenter(), zoom),
+				currentCenterPoint = this._map.project(this._center, zoom),
 
 				topLeftOffset = viewHalf.multiplyBy(-scale).add(currentCenterPoint)
 					.subtract(this._map._getNewPixelOrigin(center, zoom));
@@ -214,9 +211,10 @@
 
 		_redraw: function(offset, e) {
 			this._disableLeafletRounding();
-			var shift = this._map.latLngToLayerPoint(this._wgsOrigin)
-				._subtract(this._wgsInitialShift.multiplyBy(this._scale))._subtract(offset);
-			this._pixiContainer.scale.set(this._scale);
+			var scale = this._map.getZoomScale(this._zoom, this._initialZoom),
+				shift = this._map.latLngToLayerPoint(this._wgsOrigin)
+				._subtract(this._wgsInitialShift.multiplyBy(scale))._subtract(offset);
+			this._pixiContainer.scale.set(scale);
 			this._pixiContainer.position.set(shift.x, shift.y);
 			this._drawCallback(this.utils, e);
 			this._enableLeafletRounding();
@@ -232,6 +230,8 @@
 				min = this._map.containerPointToLayerPoint(mapSize.multiplyBy(-p)).round();
 
 			this._bounds = new L.Bounds(min, min.add(mapSize.multiplyBy(1 + p * 2)).round());
+			this._center = this._map.getCenter();
+			this._zoom = this._map.getZoom();
 
 			if (this._doubleBuffering) {
 				var currentRenderer = this._renderer;

@@ -204,6 +204,9 @@ available methods:
 
 ## Changelog
 
+### 1.8.1 (May 2, 2019)
+- Fix a pinch zoom regression introduced in 1.8.0
+
 ### 1.8.0 (Apr 30, 2019)
 - Add support for redrawing the layer during flyTo animations and pinch zooms. (This is disabled by default. See `shouldRedrawOnMove` option to enable it,)
 - Both pixi.js@5 and pixi.js-legacy@5 should be supported now.
