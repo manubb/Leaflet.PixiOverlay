@@ -14,6 +14,7 @@ window.solveCollision = function(circles, opts) {
 		circle.xMax = circle.x0 + circle.r0;
 		circle.yMin = circle.y0 - circle.r0;
 		circle.yMax = circle.y0 + circle.r0;
+		var colliding = [];
 
 		function collide(d) {
 			function fixCollision(node) {
@@ -22,12 +23,19 @@ window.solveCollision = function(circles, opts) {
 				var l = x * x + y * y;
 				var r = d.r + node.r;
 				if (l < r * r) {
+					var nodeClone = {
+						r: node.r,
+						xp: node.xp,
+						yp: node.yp,
+						from: node,
+					};
+					colliding.push(nodeClone);
 					var c1, c2, lambda1, lambda2, u1, u2;
 					var delta = Math.sqrt(l);
-					if (d.r < node.r) {
-						c1 = node; c2 = d;
+					if (d.r < nodeClone.r) {
+						c1 = nodeClone; c2 = d;
 					} else {
-						c1 = d; c2 = node;
+						c1 = d; c2 = nodeClone;
 					}
 					var r1 = c1.r;
 					var r2 = c2.r;
@@ -46,7 +54,6 @@ window.solveCollision = function(circles, opts) {
 						lambda2 = alpha / r2;
 					} else {
 						lambda1 = (r1 - r2 + delta) / (2 * r1);
-						if (lambda1 > 1) console.log(lambda1);
 						lambda2 = 1;
 					}
 					c1.r *= lambda1;
@@ -68,7 +75,7 @@ window.solveCollision = function(circles, opts) {
 			return function(quad, x1, y1, x2, y2) {
 				if (!quad.length) {
 					do {
-						if (quad.data != d && d.xMax > quad.data.xMin && d.xMin < quad.data.xMax && d.yMax > quad.data.yMin && d.yMin < quad.data.yMax) {
+						if (d.xMax > quad.data.xMin && d.xMin < quad.data.xMax && d.yMax > quad.data.yMin && d.yMin < quad.data.yMax) {
 							fixCollision(quad.data);
 						}
 					} while (quad = quad.next)
@@ -76,10 +83,26 @@ window.solveCollision = function(circles, opts) {
 				return x1 > d.xMax + rMax || x2 + rMax < d.xMin || y1 > d.yMax + rMax || y2 + rMax < d.yMin;
 			};
 		}
+
 		tree.visit(collide(circle));
 		rMax = Math.max(rMax, circle.r);
-		tree.add(circle);
+		tree.removeAll(colliding.map(function(node) {return node.from;}))
+		var newNodes = colliding.map(function(node) {
+			var from = node.from;
+			from.xp = node.xp;
+			from.yp = node.yp;
+			from.r = node.r;
+			from.xMin = node.xMin;
+			from.xMax = node.xMax;
+			from.yMin = node.yMin;
+			from.yMax = node.yMax;
+
+			return from;
+		});
+		newNodes.push(circle);
+		tree.addAll(newNodes);
 	});
+
 	if (opts.zoom !== undefined) {
 		circles.forEach(function(circle) {
 			circle.cache = circle.cache || {};
@@ -90,14 +113,12 @@ window.solveCollision = function(circles, opts) {
 			};
 		});
 	}
-	var ret = d3.quadtree()
-		.x(function(d) {return d.xp;})
-		.y(function(d) {return d.yp;});
+
 	var rMax2 = 0;
 	circles.forEach(function(circle) {
-		ret.add(circle);
 		rMax2 = Math.max(rMax2, circle.r);
 	})
-	ret.rMax = rMax2;
-	return ret;
+	tree.rMax = rMax2;
+
+	return tree;
 }
