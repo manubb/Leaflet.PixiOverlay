@@ -27,21 +27,21 @@
   "devDependencies": {
     "barbiche": "^3.0.10",
     "bezier-easing": "^2.1.0",
-    "d3-array": "^1.2.4",
-    "d3-color": "^1.4.0",
-    "d3-interpolate": "^1.4.0",
-    "d3-quadtree": "^1.0.7",
-    "d3-scale": "^2.1.2",
-    "graph-draw": "^2.0.2",
-    "jshint": "^2.11.0",
-    "leaflet": "^1.6.0",
+    "d3-array": "^2.12.1",
+    "d3-color": "^2.0.0",
+    "d3-interpolate": "^2.0.1",
+    "d3-quadtree": "^2.0.0",
+    "d3-scale": "^3.3.0",
+    "graph-draw": "^2.0.3",
+    "jshint": "^2.12.0",
+    "leaflet": "^1.7.1",
     "leaflet-hash": "^0.2.1",
     "leaflet.photon": "^0.8.0",
     "pixi.js": "^4.8.9",
     "rbush": "^3.0.1",
     "template-mb": "^2.0.6",
     "topojson-client": "^3.1.0",
-    "uglify-js": "^3.8.0"
+    "uglify-js": "^3.13.6"
   },
   "bugs": {
     "url": "https://github.com/manubb/Leaflet.PixiOverlay/issues"
