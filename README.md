@@ -179,7 +179,7 @@ available fields:
  * `forceCanvas` - (bool; defaults to `false`) Force use of a 2d-canvas for rendering.
  * `doubleBuffering` - (bool; default to `false`) Activate double buffering to prevent flickering when refreshing display on some devices (especially iOS devices). This field is ignored if rendering is done with 2d-canvas.
  * `resolution` - (number; defaults to `2` on retina devices and `1` elsewhere) Resolution of the renderer.
- * `projectionZoom` - (function(map): Number; defaults to function that returns the average of `map.getMinZoom()` and `map.getMaxZoom()`) returns the projection zoom level. Customizing this option can help if you experience visual artifacts.
+ * `projectionZoom` - (function(map): Number; defaults to function that returns the average of `map.getMinZoom()` and `map.getMaxZoom()` if the latter is finite else it returns `map.getMinZoom() + 8`) returns the projection zoom level. Customizing this option can help if you experience visual artifacts.
  * `pane` - (string; defaults to `'overlayPane'`) The Leaflet [pane](http://leafletjs.com/reference-1.3.0.html#map-pane) where the overlay container is inserted.
  * `destroyInteractionManager` - (bool; defaults to `false`) Destroy [PIXI Interaction Manager](http://pixijs.download/release/docs/PIXI.interaction.InteractionManager.html). This is useful when you do not need to use PIXI interaction.
  * `autoPreventDefault` - (bool; defaults to `true`) Customize [PIXI Interaction Manager](http://pixijs.download/release/docs/PIXI.interaction.InteractionManager.html) `autoPreventDefault` property. This option is ignored if `destroyInteractionManager` is `true`. This should be set to `false` in most situations to let all dom events flow from PIXI to leaflet but it is set by default for compatibility reason.
@@ -203,6 +203,9 @@ available methods:
 * `redraw(data)` - (function) trigger a refresh of the layer. `data` is passed as second argument of `drawCallback` function. This is useful for example when you modify something in the `container` or if you want to animate using `PIXI.ticker.Ticker`.
 
 ## Changelog
+
+### 1.8.2 (May 18, 2021)
+- Improve default `projectionZoom` function
 
 ### 1.8.1 (May 2, 2019)
 - Fix a pinch zoom regression introduced in 1.8.0

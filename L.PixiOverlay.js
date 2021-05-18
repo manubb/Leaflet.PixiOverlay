@@ -33,6 +33,14 @@
 		}
 	}
 
+  function projectionZoom(map) {
+    var maxZoom = map.getMaxZoom();
+    var minZoom = map.getMinZoom();
+    if (maxZoom === Infinity) return minZoom + 8;
+
+    return (maxZoom + minZoom) / 2;
+  }
+
 	var pixiOverlayClass = {
 
 		options: {
@@ -52,7 +60,7 @@
 			resolution: L.Browser.retina ? 2 : 1,
 			// @option projectionZoom(map: map): Number
 			// return the layer projection zoom level
-			projectionZoom: function (map) {return (map.getMaxZoom() + map.getMinZoom()) / 2;},
+			projectionZoom: projectionZoom,
 			// @option destroyInteractionManager:  Boolean = false
 			// Destroy PIXI Interaction Manager
 			destroyInteractionManager: false,
