@@ -1,7 +1,8 @@
 Leaflet.PixiOverlay
 ===================
 
-[![npm version](https://badge.fury.io/js/leaflet-pixi-overlay.svg)](https://badge.fury.io/js/leaflet-pixi-overlay)
+[![npm version](https://badge.fury.io/js/leaflet-pixi-overlay.svg)](https://www.npmjs.com/package/leaflet-pixi-overlay)
+[![](https://img.shields.io/npm/dm/leaflet-pixi-overlay)](https://www.npmjs.com/package/leaflet-pixi-overlay)
 [![](https://data.jsdelivr.com/v1/package/npm/leaflet-pixi-overlay/badge)](https://www.jsdelivr.com/package/npm/leaflet-pixi-overlay)
 
 An overlay class for [Leaflet](http://leafletjs.com), a JS
