@@ -1,6 +1,9 @@
 Leaflet.PixiOverlay
 ===================
 
+[![npm version](https://badge.fury.io/js/leaflet-pixi-overlay.svg)](https://badge.fury.io/js/leaflet-pixi-overlay)
+[![](https://data.jsdelivr.com/v1/package/npm/leaflet-pixi-overlay/badge)](https://www.jsdelivr.com/package/npm/leaflet-pixi-overlay)
+
 An overlay class for [Leaflet](http://leafletjs.com), a JS
 library for interactive maps.  Allows drawing overlay using [Pixi.js](http://www.pixijs.com/), a JavaScript library
 for drawing using WebGL that seamlessly falls back to HTML5's canvas if needed. Thanks to [Leaflet.D3SvgOverlay](https://github.com/teralytics/Leaflet.D3SvgOverlay) for inspiration.
