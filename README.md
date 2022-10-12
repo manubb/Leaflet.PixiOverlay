@@ -53,6 +53,15 @@ Include Pixi.js and the PixiOverlay libraries:
     <script src="pixi.min.js"></script>
     <script src="L.PixiOverlay.min.js"></script>
 ```
+
+Or in Node:
+
+```js
+    import * as PIXI from "pixi.js"
+    import "leaflet-pixi-overlay" // Must be called before "leaflet"
+    import L from "leaflet"
+```
+
 Create a map:
 
 ```js
