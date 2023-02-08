@@ -85,6 +85,7 @@
 			this._drawCallback = drawCallback;
 			this._pixiContainer = pixiContainer;
 			this._rendererOptions = {
+				backgroundAlpha: 0, // PIXI v7 transparency
 				transparent: true,
 				resolution: this.options.resolution,
 				antialias: true,
