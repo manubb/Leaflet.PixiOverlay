@@ -208,6 +208,9 @@ available methods:
 
 ## Changelog
 
+### 1.8.4 (Feb 19, 2023)
+- Add support for pixi.js@7 (and remove deprecation warning for pixi.js@6)
+
 ### 1.8.2 (May 18, 2021)
 - Improve default `projectionZoom` function
 
