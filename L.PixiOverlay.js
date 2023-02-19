@@ -1,5 +1,5 @@
 // Leaflet.PixiOverlay
-// version: 1.8.2
+// version: 1.8.3
 // author: Manuel Baclet <mbaclet@gmail.com>
 // license: MIT
 
@@ -85,13 +85,19 @@
 			this._drawCallback = drawCallback;
 			this._pixiContainer = pixiContainer;
 			this._rendererOptions = {
-				transparent: true,
 				resolution: this.options.resolution,
 				antialias: true,
 				forceCanvas: this.options.forceCanvas,
 				preserveDrawingBuffer: this.options.preserveDrawingBuffer,
 				clearBeforeRender: this.options.clearBeforeRender
 			};
+
+      if (PIXI.VERSION < "6") {
+        this._rendererOptions.transparent = true;
+      } else {
+        this._rendererOptions.backgroundAlpha = 0;
+      }
+
 			this._doubleBuffering = PIXI.utils.isWebGLSupported() && !this.options.forceCanvas &&
 				this.options.doubleBuffering;
 		},
