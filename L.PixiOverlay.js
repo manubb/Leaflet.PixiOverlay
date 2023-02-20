@@ -23,9 +23,10 @@
 }(function (L, PIXI) {
 
 	var round = L.Point.prototype._round;
-	var no_round = function () {return this;};
+	var no_round = function () { return this; };
 
-	function setInteractionManager(interactionManager, destroyInteractionManager, autoPreventDefault) {
+	function setInteractionManager(renderer, destroyInteractionManager, autoPreventDefault) {
+		var interactionManager = (PIXI.VERSION < "7") ? renderer.plugins.interaction : renderer.events;
 		if (destroyInteractionManager) {
 			interactionManager.destroy();
 		} else if (!autoPreventDefault) {
@@ -33,13 +34,13 @@
 		}
 	}
 
-  function projectionZoom(map) {
-    var maxZoom = map.getMaxZoom();
-    var minZoom = map.getMinZoom();
-    if (maxZoom === Infinity) return minZoom + 8;
+	function projectionZoom(map) {
+		var maxZoom = map.getMaxZoom();
+		var minZoom = map.getMinZoom();
+		if (maxZoom === Infinity) return minZoom + 8;
 
-    return (maxZoom + minZoom) / 2;
-  }
+		return (maxZoom + minZoom) / 2;
+	}
 
 	var pixiOverlayClass = {
 
@@ -76,7 +77,7 @@
 			clearBeforeRender: true,
 			// @option shouldRedrawOnMove(e: moveEvent): Boolean
 			// filter move events that should trigger a layer redraw
-			shouldRedrawOnMove: function () {return false;},
+			shouldRedrawOnMove: function () { return false; },
 		},
 
 		initialize: function (drawCallback, pixiContainer, options) {
@@ -92,25 +93,25 @@
 				clearBeforeRender: this.options.clearBeforeRender
 			};
 
-      if (PIXI.VERSION < "6") {
-        this._rendererOptions.transparent = true;
-      } else {
-        this._rendererOptions.backgroundAlpha = 0;
-      }
+			if (PIXI.VERSION < "6") {
+				this._rendererOptions.transparent = true;
+			} else {
+				this._rendererOptions.backgroundAlpha = 0;
+			}
 
 			this._doubleBuffering = PIXI.utils.isWebGLSupported() && !this.options.forceCanvas &&
 				this.options.doubleBuffering;
 		},
 
-		_setMap: function () {},
+		_setMap: function () { },
 
-		_setContainerStyle: function () {},
+		_setContainerStyle: function () { },
 
 		_addContainer: function () {
 			this.getPane().appendChild(this._container);
 		},
 
-		_setEvents: function () {},
+		_setEvents: function () { },
 
 		onAdd: function (targetMap) {
 			this._setMap(targetMap);
@@ -119,7 +120,7 @@
 				container.style.position = 'absolute';
 				this._renderer = PIXI.autoDetectRenderer(this._rendererOptions);
 				setInteractionManager(
-					this._renderer.plugins.interaction,
+					this._renderer,
 					this.options.destroyInteractionManager,
 					this.options.autoPreventDefault
 				);
@@ -131,7 +132,7 @@
 				if (this._doubleBuffering) {
 					this._auxRenderer = PIXI.autoDetectRenderer(this._rendererOptions);
 					setInteractionManager(
-						this._auxRenderer.plugins.interaction,
+						this._auxRenderer,
 						this.options.destroyInteractionManager,
 						this.options.autoPreventDefault
 					);
@@ -175,7 +176,7 @@
 					return _layer._map;
 				}
 			};
-			this._update({type: 'add'});
+			this._update({ type: 'add' });
 		},
 
 		onRemove: function () {
@@ -202,7 +203,7 @@
 			this._updateTransform(e.center, e.zoom);
 		},
 
-		_onMove: function(e) {
+		_onMove: function (e) {
 			if (this.options.shouldRedrawOnMove(e)) {
 				this._update(e);
 			}
@@ -223,11 +224,11 @@
 			}
 		},
 
-		_redraw: function(offset, e) {
+		_redraw: function (offset, e) {
 			this._disableLeafletRounding();
 			var scale = this._map.getZoomScale(this._zoom, this._initialZoom),
 				shift = this._map.latLngToLayerPoint(this._wgsOrigin)
-				._subtract(this._wgsInitialShift.multiplyBy(scale))._subtract(offset);
+					._subtract(this._wgsInitialShift.multiplyBy(scale))._subtract(offset);
 			this._pixiContainer.scale.set(scale);
 			this._pixiContainer.position.set(shift.x, shift.y);
 			this._drawCallback(this.utils, e);
@@ -236,7 +237,7 @@
 
 		_update: function (e) {
 			// is this really useful?
-			if (this._map._animatingZoom && this._bounds) {return;}
+			if (this._map._animatingZoom && this._bounds) { return; }
 
 			// Update pixel bounds of renderer container
 			var p = this.options.padding,
@@ -284,7 +285,7 @@
 
 			if (this._doubleBuffering) {
 				var self = this;
-				requestAnimationFrame(function() {
+				requestAnimationFrame(function () {
 					self._redraw(b.min, e);
 					self._renderer.gl.finish();
 					view.style.visibility = 'visible';
