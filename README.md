@@ -49,28 +49,28 @@ or can be included in a page with [jsDelivr CDN](https://www.jsdelivr.com/packag
 
 Include Pixi.js and the PixiOverlay libraries:
 
-```js
-    <script src="pixi.min.js"></script>
-    <script src="L.PixiOverlay.min.js"></script>
+```html
+<script src="pixi.min.js"></script>
+<script src="L.PixiOverlay.min.js"></script>
 ```
 Create a map:
 
 ```js
-    const map = L.map(...);
+const map = L.map(...);
 ```
 
 Create an overlay:
 
 ```js
-    const pixiOverlay = L.pixiOverlay((utils) => {
-        // your drawing code here
-    }, new PIXI.Container());
+const pixiOverlay = L.pixiOverlay((utils) => {
+    // your drawing code here
+}, new PIXI.Container());
 ```
 
 Add it to the map:
 
 ```js
-    pixiOverlay.addTo(map);
+pixiOverlay.addTo(map);
 ```
 ## Examples
 
