@@ -75,7 +75,7 @@
 						});
 						const quadTrees = {};
 						for (let z = map.getMinZoom(); z <= map.getMaxZoom(); z++) {
-							const rInit = ((z <= 7) ? 10 : 24) / utils.getScale(z);
+							const rInit = ((z <= 7) ? 16 : 24) / utils.getScale(z);
 							quadTrees[z] = window.solveCollision(markerSprites, {r0: rInit, zoom: z});
 						}
 						const findMarker = (ll) => {
