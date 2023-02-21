@@ -108,6 +108,7 @@ const pixiOverlay = L.pixiOverlay((utils) => {
     prevZoom = zoom;
     renderer.render(container);
 }, pixiContainer);
+
 pixiOverlay.addTo(map);
 ```
 ### Draw a triangle
@@ -151,6 +152,7 @@ const pixiOverlay = L.pixiOverlay((utils) => {
     prevZoom = zoom;
     renderer.render(container);
 }, pixiContainer);
+
 pixiOverlay.addTo(map);
 ```
 
@@ -181,8 +183,8 @@ available fields:
  * `resolution` - (number; defaults to `2` on retina devices and `1` elsewhere) Resolution of the renderer.
  * `projectionZoom` - (function(map): Number; defaults to function that returns the average of `map.getMinZoom()` and `map.getMaxZoom()` if the latter is finite else it returns `map.getMinZoom() + 8`) returns the projection zoom level. Customizing this option can help if you experience visual artifacts.
  * `pane` - (string; defaults to `'overlayPane'`) The Leaflet [pane](http://leafletjs.com/reference-1.3.0.html#map-pane) where the overlay container is inserted.
- * `destroyInteractionManager` - (bool; defaults to `false`) Destroy [PIXI Interaction Manager](http://pixijs.download/release/docs/PIXI.interaction.InteractionManager.html). This is useful when you do not need to use PIXI interaction.
- * `autoPreventDefault` - (bool; defaults to `true`) Customize [PIXI Interaction Manager](http://pixijs.download/release/docs/PIXI.interaction.InteractionManager.html) `autoPreventDefault` property. This option is ignored if `destroyInteractionManager` is `true`. This should be set to `false` in most situations to let all dom events flow from PIXI to leaflet but it is set by default for compatibility reason.
+ * `destroyInteractionManager` - (bool; defaults to `false`) Destroy [PIXI EventSystem](https://pixijs.download/release/docs/PIXI.EventSystem.html). This is useful when you do not need to use PIXI interaction.
+ * `autoPreventDefault` - (bool; defaults to `true`) Customize [PIXI EventSystem](https://pixijs.download/release/docs/PIXI.EventSystem.html) `autoPreventDefault` property. This option is ignored if `destroyInteractionManager` is `true`. This should be set to `false` in most situations to let all dom events flow from PIXI to leaflet but it is set by default for compatibility reason.
  * `preserveDrawingBuffer` - (bool; defaults to `false`) Enables drawing buffer preservation, enable this if you need to call toDataUrl on the webgl context.
  * `clearBeforeRender` - (bool; defaults to `true`) This sets if the renderer will clear the canvas or not before the new render pass.
  * `shouldRedrawOnMove` - (function(e: moveEvent): Boolean; defaults to `function () {return false;}`) Move events trigger a redraw when this function returns `true`. For example using `function (e) {return e.flyTo || e.pinch;}` will trigger redraws during `flyTo` animation and pinch zooms.
@@ -206,7 +208,7 @@ available methods:
 
 ## Changelog
 
-### 1.9.0 (Feb, 2023)
+### 1.9.0 (Feb 22, 2023)
 - Add support for `destroy` method
 
 ### 1.8.4 (Feb 19, 2023)

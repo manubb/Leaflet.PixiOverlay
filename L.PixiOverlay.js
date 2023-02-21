@@ -1,5 +1,5 @@
 // Leaflet.PixiOverlay
-// version: 1.8.4
+// version: 1.9.0
 // author: Manuel Baclet <mbaclet@gmail.com>
 // license: MIT
 
@@ -25,12 +25,12 @@
 	var round = L.Point.prototype._round;
 	var no_round = function () { return this; };
 
-	function setInteractionManager(renderer, destroyInteractionManager, autoPreventDefault) {
-		var interactionManager = (PIXI.VERSION < "7") ? renderer.plugins.interaction : renderer.events;
+	function setEventSystem(renderer, destroyInteractionManager, autoPreventDefault) {
+		var eventSystem = (PIXI.VERSION < "7") ? renderer.plugins.interaction : renderer.events;
 		if (destroyInteractionManager) {
-			interactionManager.destroy();
+			eventSystem.destroy();
 		} else if (!autoPreventDefault) {
-			interactionManager.autoPreventDefault = false;
+			eventSystem.autoPreventDefault = false;
 		}
 	}
 
@@ -63,10 +63,10 @@
 			// return the layer projection zoom level
 			projectionZoom: projectionZoom,
 			// @option destroyInteractionManager:  Boolean = false
-			// Destroy PIXI Interaction Manager
+			// Destroy PIXI EventSystem
 			destroyInteractionManager: false,
 			// @option
-			// Customize PIXI Interaction Manager autoPreventDefault property
+			// Customize PIXI EventSystem autoPreventDefault property
 			// This option is ignored if destroyInteractionManager is set
 			autoPreventDefault: true,
 			// @option resolution: Boolean = false
@@ -119,7 +119,7 @@
 				var container = this._container = L.DomUtil.create('div', 'leaflet-pixi-overlay');
 				container.style.position = 'absolute';
 				this._renderer = PIXI.autoDetectRenderer(this._rendererOptions);
-				setInteractionManager(
+				setEventSystem(
 					this._renderer,
 					this.options.destroyInteractionManager,
 					this.options.autoPreventDefault
@@ -131,7 +131,7 @@
 				}
 				if (this._doubleBuffering) {
 					this._auxRenderer = PIXI.autoDetectRenderer(this._rendererOptions);
-					setInteractionManager(
+					setEventSystem(
 						this._auxRenderer,
 						this.options.destroyInteractionManager,
 						this.options.autoPreventDefault
