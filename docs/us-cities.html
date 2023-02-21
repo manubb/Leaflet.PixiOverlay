@@ -6,7 +6,7 @@
 	<meta name="viewport" content="width=device-width">
 	<link rel="stylesheet" href="css/leaflet.css"/>
 	<link rel="stylesheet" href="css/carte.css"/>
-	<script src="js/example.min.js"></script>
+	<script src="js/example_v7.min.js"></script>
 	<script src="js/tools.min.js"></script>
 </head>
 <body style="height: 100%; margin: 0; overflow: hidden;">
@@ -18,197 +18,167 @@
 	</div>
 </div>
 <script>
-	var getJSON = function(url, successHandler, errorHandler) {
-		var xhr = typeof XMLHttpRequest != 'undefined'
-			? new XMLHttpRequest()
-			: new ActiveXObject('Microsoft.XMLHTTP');
-		xhr.open('get', url, true);
-		xhr.onreadystatechange = function() {
-			var status;
-			var data;
-			if (xhr.readyState == 4) {
-				status = xhr.status;
-				if (status == 200) {
-					data = JSON.parse(xhr.responseText);
-					successHandler && successHandler(data);
-				} else {
-					errorHandler && errorHandler(status);
-				}
-			}
-		};
-		xhr.send();
-	};
+	(async () => {
+		const Assets = PIXI.Assets;
+		const textures = [await Assets.load('img/plane.png'), await Assets.load('img/circle.png'), await Assets.load('img/bicycle.png')];
+		const focusTextures = [await Assets.load('img/focus-plane.png'), await Assets.load('img/focus-circle.png'), await Assets.load('img/focus-bicycle.png')];
+		fetch('data/cities.json').then(response => response.json()).then(markers => {
+			var map = L.map('map').setView([37.49229399862877, -96.94335937500001], 4);
+			L.tileLayer('//stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
+				subdomains: 'abcd',
+				attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+				minZoom: 4,
+				maxZoom: 18
+			}).addTo(map);
+			map.attributionControl.setPosition('bottomleft');
+			map.zoomControl.setPosition('bottomright');
+			const legend = document.querySelector('div.legend.geometry');
+			const legendContent = legend.querySelector('.content');
+			const pixiLayer = (() => {
+				let firstDraw = true;
+				let prevZoom;
+				const markerSprites = [];
+				const colorScale = d3.scaleLinear()
+					.domain([0, 50, 100])
+					.range(["#c6233c", "#ffd300", "#008000"]);
 
-	var loader = new PIXI.loaders.Loader();
-	loader
-		.add('plane', 'img/plane.png')
-		.add('focusPlane', 'img/focus-plane.png')
-		.add('circle', 'img/circle.png')
-		.add('focusCircle', 'img/focus-circle.png')
-		.add('bicycle', 'img/bicycle.png')
-		.add('focusBicycle', 'img/focus-bicycle.png');
-	document.addEventListener("DOMContentLoaded", function() {
-		loader.load(function(loader, resources) {
-			var textures = [resources.plane.texture, resources.circle.texture, resources.bicycle.texture];
-			var focusTextures = [resources.focusPlane.texture, resources.focusCircle.texture, resources.focusBicycle.texture];
-			getJSON('data/cities.json', function(markers) {
-				var map = L.map('map').setView([37.49229399862877, -96.94335937500001], 4);
-				L.tileLayer('//stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
-					subdomains: 'abcd',
-					attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
-					minZoom: 4,
-					maxZoom: 18
-				}).addTo(map);
-				map.attributionControl.setPosition('bottomleft');
-				map.zoomControl.setPosition('bottomright');
-				var legend = document.querySelector('div.legend.geometry');
-				var legendContent = legend.querySelector('.content');
-				var pixiLayer = (function() {
-					var firstDraw = true;
-					var prevZoom;
-					var markerSprites = [];
-					var colorScale = d3.scaleLinear()
-						.domain([0, 50, 100])
-						.range(["#c6233c", "#ffd300", "#008000"]);
-
-					var frame = null;
-					var focus = null;
-					var pixiContainer = new PIXI.Container();
-					var doubleBuffering = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-					return L.pixiOverlay(function(utils) {
-						var zoom = utils.getMap().getZoom();
-						if (frame) {
-							cancelAnimationFrame(frame);
-							frame = null;
-						}
-						var container = utils.getContainer();
-						var renderer = utils.getRenderer();
-						var project = utils.latLngToLayerPoint;
-						var scale = utils.getScale();
-						var invScale = 1 / scale;
-						if (firstDraw) {
-							prevZoom = zoom;
-							markers.forEach(function(marker) {
-								var coords = project([marker.latitude, marker.longitude]);
-								var index = Math.floor(Math.random() * textures.length);
-								var markerSprite = new PIXI.Sprite(textures[index]);
-								markerSprite.textureIndex = index;
-								markerSprite.x0 = coords.x;
-								markerSprite.y0 = coords.y;
-								markerSprite.anchor.set(0.5, 0.5);
-								var tint = d3.color(colorScale(marker.avancement || Math.random() * 100)).rgb();
-								markerSprite.tint = 256 * (tint.r * 256 + tint.g) + tint.b;
-								container.addChild(markerSprite);
-								markerSprites.push(markerSprite);
-								markerSprite.legend = marker.city || marker.label;
-							});
-							var quadTrees = {};
-							for (var z = map.getMinZoom(); z <= map.getMaxZoom(); z++) {
-								var rInit = ((z <= 7) ? 16 : 24) / utils.getScale(z);
-								quadTrees[z] = window.solveCollision(markerSprites, {r0: rInit, zoom: z});
-							}
-							function findMarker(ll) {
-								var layerPoint = project(ll);
-								var quadTree = quadTrees[utils.getMap().getZoom()];
-								var marker;
-								var rMax = quadTree.rMax;
-								var found = false;
-								quadTree.visit(function(quad, x1, y1, x2, y2) {
-									if (!quad.length) {
-										var dx = quad.data.x - layerPoint.x;
-										var dy = quad.data.y - layerPoint.y;
-										var r = quad.data.scale.x * 16;
-										if (dx * dx + dy * dy <= r * r) {
-											marker = quad.data;
-											found = true;
-										}
-									}
-									return found || x1 > layerPoint.x + rMax || x2 + rMax < layerPoint.x || y1 > layerPoint.y + rMax || y2 + rMax < layerPoint.y;
-								});
-								return marker;
-							}
-							map.on('click', function(e) {
-								var redraw = false;
-								if (focus) {
-									focus.texture = textures[focus.textureIndex];
-									focus = null;
-									L.DomUtil.addClass(legend, 'hide');
-									legendContent.innerHTML = '';
-									redraw = true;
-								}
-								var marker = findMarker(e.latlng);
-								if (marker) {
-									marker.texture = focusTextures[marker.textureIndex];
-									focus = marker;
-									legendContent.innerHTML = marker.legend;
-									L.DomUtil.removeClass(legend, 'hide');
-									redraw = true;
-								}
-								if (redraw) utils.getRenderer().render(container);
-							});
-							var self = this;
-							map.on('mousemove', L.Util.throttle(function(e) {
-								var marker = findMarker(e.latlng);
-								if (marker) {
-									L.DomUtil.addClass(self._container, 'leaflet-interactive');
-								} else {
-									L.DomUtil.removeClass(self._container, 'leaflet-interactive');
-								}
-							}, 32));
-						}
-						if (firstDraw || prevZoom !== zoom) {
-							markerSprites.forEach(function(markerSprite) {
-								var position = markerSprite.cache[zoom];
-								if (firstDraw) {
-									markerSprite.x = position.x;
-									markerSprite.y = position.y;
-									markerSprite.scale.set((position.r * scale < 16) ? position.r / 16 : invScale);
-								} else {
-									markerSprite.currentX = markerSprite.x;
-									markerSprite.currentY = markerSprite.y;
-									markerSprite.targetX = position.x;
-									markerSprite.targetY = position.y;
-									markerSprite.currentScale = markerSprite.scale.x;
-									markerSprite.targetScale = (position.r * scale < 16) ? position.r / 16 : invScale;
-								}
-							});
-						}
-
-						var start = null;
-						var delta = 250;
-						function animate(timestamp) {
-							var progress;
-						  if (start === null) start = timestamp;
-						  progress = timestamp - start;
-						  var lambda = progress / delta;
-						  if (lambda > 1) lambda = 1;
-						  lambda = lambda * (0.4 + lambda * (2.2 + lambda * -1.6));
-						  markerSprites.forEach(function(markerSprite) {
-							  markerSprite.x = markerSprite.currentX + lambda * (markerSprite.targetX - markerSprite.currentX);
-							  markerSprite.y = markerSprite.currentY + lambda * (markerSprite.targetY - markerSprite.currentY);
-							  markerSprite.scale.set(markerSprite.currentScale + lambda * (markerSprite.targetScale - markerSprite.currentScale));
-							});
-							renderer.render(container);
-						  if (progress < delta) {
-						    frame = requestAnimationFrame(animate);
-						  }
-						}
-						if (!firstDraw && prevZoom !== zoom) {
-							frame = requestAnimationFrame(animate);
-						}
-						firstDraw = false;
+				let frame = null;
+				let focus = null;
+				const pixiContainer = new PIXI.Container();
+				const doubleBuffering = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+				return L.pixiOverlay(function (utils) {
+					const zoom = utils.getMap().getZoom();
+					if (frame) {
+						cancelAnimationFrame(frame);
+						frame = null;
+					}
+					const container = utils.getContainer();
+					const renderer = utils.getRenderer();
+					const project = utils.latLngToLayerPoint;
+					const scale = utils.getScale();
+					const invScale = 1 / scale;
+					if (firstDraw) {
 						prevZoom = zoom;
-						renderer.render(container);
-					}, pixiContainer, {
-						doubleBuffering: doubleBuffering,
-						destroyInteractionManager: true
-					});
-				})();
+						markers.forEach((marker) => {
+							const coords = project([marker.latitude, marker.longitude]);
+							const index = Math.floor(Math.random() * textures.length);
+							const markerSprite = new PIXI.Sprite(textures[index]);
+							markerSprite.textureIndex = index;
+							markerSprite.x0 = coords.x;
+							markerSprite.y0 = coords.y;
+							markerSprite.anchor.set(0.5, 0.5);
+							const tint = d3.color(colorScale(marker.avancement || Math.random() * 100)).rgb();
+							markerSprite.tint = 256 * (tint.r * 256 + tint.g) + tint.b;
+							container.addChild(markerSprite);
+							markerSprites.push(markerSprite);
+							markerSprite.legend = marker.city || marker.label;
+						});
+						const quadTrees = {};
+						for (let z = map.getMinZoom(); z <= map.getMaxZoom(); z++) {
+							const rInit = ((z <= 7) ? 10 : 24) / utils.getScale(z);
+							quadTrees[z] = window.solveCollision(markerSprites, {r0: rInit, zoom: z});
+						}
+						const findMarker = (ll) => {
+							const layerPoint = project(ll);
+							const quadTree = quadTrees[utils.getMap().getZoom()];
+							let marker;
+							const rMax = quadTree.rMax;
+							let found = false;
+							quadTree.visit((quad, x1, y1, x2, y2) => {
+								if (!quad.length) {
+									var dx = quad.data.x - layerPoint.x;
+									var dy = quad.data.y - layerPoint.y;
+									var r = quad.data.scale.x * 16;
+									if (dx * dx + dy * dy <= r * r) {
+										marker = quad.data;
+										found = true;
+									}
+								}
+								return found || x1 > layerPoint.x + rMax || x2 + rMax < layerPoint.x || y1 > layerPoint.y + rMax || y2 + rMax < layerPoint.y;
+							});
+							return marker;
+						}
+						map.on('click', (e) => {
+							let redraw = false;
+							if (focus) {
+								focus.texture = textures[focus.textureIndex];
+								focus = null;
+								L.DomUtil.addClass(legend, 'hide');
+								legendContent.innerHTML = '';
+								redraw = true;
+							}
+							const marker = findMarker(e.latlng);
+							if (marker) {
+								marker.texture = focusTextures[marker.textureIndex];
+								focus = marker;
+								legendContent.innerHTML = marker.legend;
+								L.DomUtil.removeClass(legend, 'hide');
+								redraw = true;
+							}
+							if (redraw) utils.getRenderer().render(container);
+						});
+						const self = this;
+						map.on('mousemove', L.Util.throttle((e) => {
+							const marker = findMarker(e.latlng);
+							if (marker) {
+								L.DomUtil.addClass(self._container, 'leaflet-interactive');
+							} else {
+								L.DomUtil.removeClass(self._container, 'leaflet-interactive');
+							}
+						}, 32));
+					}
+					if (firstDraw || prevZoom !== zoom) {
+						markerSprites.forEach((markerSprite) => {
+							const position = markerSprite.cache[zoom];
+							if (firstDraw) {
+								markerSprite.x = position.x;
+								markerSprite.y = position.y;
+								markerSprite.scale.set((position.r * scale < 16) ? position.r / 16 : invScale);
+							} else {
+								markerSprite.currentX = markerSprite.x;
+								markerSprite.currentY = markerSprite.y;
+								markerSprite.targetX = position.x;
+								markerSprite.targetY = position.y;
+								markerSprite.currentScale = markerSprite.scale.x;
+								markerSprite.targetScale = (position.r * scale < 16) ? position.r / 16 : invScale;
+							}
+						});
+					}
 
-				pixiLayer.addTo(map);
-			});
+					let start = null;
+					const delta = 250;
+					const animate = (timestamp) => {
+						let progress;
+						if (start === null) start = timestamp;
+						progress = timestamp - start;
+						let lambda = progress / delta;
+						if (lambda > 1) lambda = 1;
+						lambda = lambda * (0.4 + lambda * (2.2 + lambda * -1.6));
+						markerSprites.forEach((markerSprite) => {
+							markerSprite.x = markerSprite.currentX + lambda * (markerSprite.targetX - markerSprite.currentX);
+							markerSprite.y = markerSprite.currentY + lambda * (markerSprite.targetY - markerSprite.currentY);
+							markerSprite.scale.set(markerSprite.currentScale + lambda * (markerSprite.targetScale - markerSprite.currentScale));
+						});
+						renderer.render(container);
+						if (progress < delta) {
+						frame = requestAnimationFrame(animate);
+						}
+					}
+					if (!firstDraw && prevZoom !== zoom) {
+						frame = requestAnimationFrame(animate);
+					}
+					firstDraw = false;
+					prevZoom = zoom;
+					renderer.render(container);
+				}, pixiContainer, {
+					doubleBuffering: doubleBuffering,
+					destroyInteractionManager: true
+				});
+			})();
+
+			pixiLayer.addTo(map);
 		});
-	});
+	})();
 </script>
 </body>
 </html>
