@@ -313,8 +313,19 @@
 				this._enableLeafletRounding();
 			}
 			return this;
-		}
+		},
 
+		_destroy: function () {
+			this._renderer.destroy(true);
+			if (this._doubleBuffering) {
+				this._auxRenderer.destroy(true);
+			}
+		},
+
+		destroy: function () {
+			this.remove();
+			this._destroy();
+		}
 	};
 
 	if (L.version >= "1") {
@@ -377,12 +388,23 @@
 		};
 
 		pixiOverlayClass.onRemove = function () {
-			this._map.getPanes()[this.options.pane || 'overlayPane']
-				.removeChild(this._container);
+			this._map = null;
+			var parent = this._container.parentNode;
+			if (parent) {
+				parent.removeChild(this._container);
+			}
 			var events = this.getEvents();
 			for (var evt in events) {
 				this._map.off(evt, events[evt], this);
 			}
+		};
+
+		pixiOverlayClass.destroy = function () {
+			var map = this._map || this._mapToAdd;
+			if (map) {
+				map.removeLayer(this);
+			}
+			this._destroy();
 		};
 
 		L.PixiOverlay = L.Class.extend(pixiOverlayClass);

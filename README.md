@@ -56,13 +56,13 @@ Include Pixi.js and the PixiOverlay libraries:
 Create a map:
 
 ```js
-    var map = L.map(...);
+    const map = L.map(...);
 ```
 
 Create an overlay:
 
 ```js
-    var pixiOverlay = L.pixiOverlay(function(utils) {
+    const pixiOverlay = L.pixiOverlay((utils) => {
         // your drawing code here
     }, new PIXI.Container());
 ```
@@ -76,76 +76,72 @@ Add it to the map:
 
 ### Draw a marker
 ```js
-var loader = new PIXI.loaders.Loader();
-loader.add('marker', 'img/marker-icon.png');
-loader.load(function(loader, resources) {
-    var markerTexture = resources.marker.texture;
-    var markerLatLng = [51.5, -0.09];
-    var marker = new PIXI.Sprite(markerTexture);
-    marker.anchor.set(0.5, 1);
+const markerTexture = await PIXI.Assets.load('img/marker-icon.png');
+const markerLatLng = [51.5, -0.09];
+const marker = new PIXI.Sprite(markerTexture);
+marker.anchor.set(0.5, 1);
 
-    var pixiContainer = new PIXI.Container();
-    pixiContainer.addChild(marker);
+const pixiContainer = new PIXI.Container();
+pixiContainer.addChild(marker);
 
-    var firstDraw = true;
-    var prevZoom;
+let firstDraw = true;
+let prevZoom;
 
-    var pixiOverlay = L.pixiOverlay(function(utils) {
-        var zoom = utils.getMap().getZoom();
-        var container = utils.getContainer();
-        var renderer = utils.getRenderer();
-        var project = utils.latLngToLayerPoint;
-        var scale = utils.getScale();
+const pixiOverlay = L.pixiOverlay((utils) => {
+    const zoom = utils.getMap().getZoom();
+    const container = utils.getContainer();
+    const renderer = utils.getRenderer();
+    const project = utils.latLngToLayerPoint;
+    const scale = utils.getScale();
 
-        if (firstDraw) {
-            var markerCoords = project(markerLatLng);
-            marker.x = markerCoords.x;
-            marker.y = markerCoords.y;
-        }
+    if (firstDraw) {
+        const markerCoords = project(markerLatLng);
+        marker.x = markerCoords.x;
+        marker.y = markerCoords.y;
+    }
 
-        if (firstDraw || prevZoom !== zoom) {
-            marker.scale.set(1 / scale);
-        }
+    if (firstDraw || prevZoom !== zoom) {
+        marker.scale.set(1 / scale);
+    }
 
-        firstDraw = false;
-        prevZoom = zoom;
-        renderer.render(container);
-    }, pixiContainer);
-    pixiOverlay.addTo(map);
-});
+    firstDraw = false;
+    prevZoom = zoom;
+    renderer.render(container);
+}, pixiContainer);
+pixiOverlay.addTo(map);
 ```
 ### Draw a triangle
 ```js
-var polygonLatLngs = [
+const polygonLatLngs = [
     [51.509, -0.08],
     [51.503, -0.06],
     [51.51, -0.047],
     [51.509, -0.08]
 ];
-var projectedPolygon;
-var triangle = new PIXI.Graphics();
+let projectedPolygon;
+const triangle = new PIXI.Graphics();
 
-var pixiContainer = new PIXI.Container();
+const pixiContainer = new PIXI.Container();
 pixiContainer.addChild(triangle);
 
-var firstDraw = true;
-var prevZoom;
+let firstDraw = true;
+let prevZoom;
 
-var pixiOverlay = L.pixiOverlay(function(utils) {
-    var zoom = utils.getMap().getZoom();
-    var container = utils.getContainer();
-    var renderer = utils.getRenderer();
-    var project = utils.latLngToLayerPoint;
-    var scale = utils.getScale();
+const pixiOverlay = L.pixiOverlay((utils) => {
+    const zoom = utils.getMap().getZoom();
+    const container = utils.getContainer();
+    const renderer = utils.getRenderer();
+    const project = utils.latLngToLayerPoint;
+    const scale = utils.getScale();
 
     if (firstDraw) {
-        projectedPolygon = polygonLatLngs.map(function(coords) {return project(coords);});
+        projectedPolygon = polygonLatLngs.map((coords) => project(coords));
     }
     if (firstDraw || prevZoom !== zoom) {
         triangle.clear();
         triangle.lineStyle(3 / scale, 0x3388ff, 1);
         triangle.beginFill(0x3388ff, 0.2);
-        projectedPolygon.forEach(function(coords, index) {
+        projectedPolygon.forEach((coords, index) => {
             if (index == 0) triangle.moveTo(coords.x, coords.y);
             else triangle.lineTo(coords.x, coords.y);
         });
@@ -206,7 +202,12 @@ available methods:
 
 * `redraw(data)` - (function) trigger a refresh of the layer. `data` is passed as second argument of `drawCallback` function. This is useful for example when you modify something in the `container` or if you want to animate using `PIXI.ticker.Ticker`.
 
+* `destroy()` - (function) remove the layer from the map and destroy the underlying renderer. A destroyed layer is not usable anymore.
+
 ## Changelog
+
+### 1.9.0 (Feb, 2023)
+- Add support for `destroy` method
 
 ### 1.8.4 (Feb 19, 2023)
 - Add support for pixi.js@7 (and remove deprecation warning for pixi.js@6)
@@ -218,8 +219,8 @@ available methods:
 - Fix a pinch zoom regression introduced in 1.8.0
 
 ### 1.8.0 (Apr 30, 2019)
-- Add support for redrawing the layer during flyTo animations and pinch zooms. (This is disabled by default. See `shouldRedrawOnMove` option to enable it,)
-- Both pixi.js@5 and pixi.js-legacy@5 should be supported now.
+- Add support for redrawing the layer during flyTo animations and pinch zooms (This is disabled by default. See `shouldRedrawOnMove` option to enable it.)
+- Both pixi.js@5 and pixi.js-legacy@5 should be supported now
 
 ### 1.7.0 (Mar 20, 2019)
 - Add basic support for pixi.js-legacy@5
@@ -251,8 +252,7 @@ available methods:
 - Add support for leaflet@0.7.x (thanks to [dzwiedzmin](https://github.com/dzwiedzmin))
 
 ### 1.0.0 (Sep 2, 2017)
-
-- Initial release.
+- Initial release
 
 ## License
 
