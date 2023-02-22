@@ -22,7 +22,7 @@ for drawing using WebGL that seamlessly falls back to HTML5's canvas if needed. 
 
 ## Demo
 
-A very basic [demo] (pixi.js@7) (https://manubb.github.io/Leaflet.PixiOverlay/leaflet-quickstart.html).
+A very basic [demo](https://manubb.github.io/Leaflet.PixiOverlay/leaflet-quickstart.html) (pixi.js@7) .
 
 Largest [US cities](https://manubb.github.io/Leaflet.PixiOverlay/us-cities.html) (pixi.js@7, 1000 animated markers).
 
