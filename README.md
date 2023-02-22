@@ -21,11 +21,11 @@ for drawing using WebGL that seamlessly falls back to HTML5's canvas if needed. 
 
 ## Demo
 
-A very basic [demo](https://manubb.github.io/Leaflet.PixiOverlay/leaflet-quickstart.html).
+A very basic [demo] (pixi.js@7) (https://manubb.github.io/Leaflet.PixiOverlay/leaflet-quickstart.html).
 
-Largest [US cities](https://manubb.github.io/Leaflet.PixiOverlay/us-cities.html) (1000 animated markers).
+Largest [US cities](https://manubb.github.io/Leaflet.PixiOverlay/us-cities.html) (pixi.js@7, 1000 animated markers).
 
-[French cities](https://manubb.github.io/Leaflet.PixiOverlay/french-cities.html) (36700 animated markers).
+[French cities](https://manubb.github.io/Leaflet.PixiOverlay/french-cities.html) (pixi.js@7, 36700 animated markers).
 
 [One million markers](https://manubb.github.io/Leaflet.PixiOverlay/many-markers.html)
 
