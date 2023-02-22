@@ -17,7 +17,8 @@ for drawing using WebGL that seamlessly falls back to HTML5's canvas if needed. 
  * No need to reproject your geometries on zoom, this is done using scaling
  * Zoom animation where Leaflet supports it
 
-*Compatible with Leaflet 0.7.x and 1.x*
+*Compatible with leaflet@0.7.x and 1.x*
+*Compatible with pixi.js@4,5,6,7*
 
 ## Demo
 
