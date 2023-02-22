@@ -209,7 +209,7 @@ available methods:
 
 ## Changelog
 
-### 1.9.0 (Feb 22, 2023)
+### 1.9.3 (Feb 22, 2023)
 - Add support for `destroy` method
 
 ### 1.8.4 (Feb 19, 2023)
