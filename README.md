@@ -259,3 +259,11 @@ available methods:
 ## License
 
 This code is provided under the MIT License (MIT).
+
+## Sponsors
+
+Thanks to [Stadia Maps](https://stadiamaps.com/) for providing the [Stamen Toner Lite map tiles](https://docs.stadiamaps.com/map-styles/stamen-toner/#lite-variant) in our project demos.
+
+<p align="center">
+  <a href="https://stadiamaps.com/" target="_blank"><img width="128" src="/docs/img/stadia-logo.svg"></a>
+</p>
