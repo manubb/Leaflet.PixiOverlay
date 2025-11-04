@@ -208,6 +208,9 @@ available methods:
 
 ## Changelog
 
+### 1.9.5 (Nov 4, 2025)
+- Fix bug in `onRemove` for Leaflet 0.7.x (thanks to [Joebh](https://github.com/Joebh))
+
 ### 1.9.3 (Feb 22, 2023)
 - Add support for `destroy` method
 
