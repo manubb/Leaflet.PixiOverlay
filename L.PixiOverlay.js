@@ -388,7 +388,6 @@
 		};
 
 		pixiOverlayClass.onRemove = function () {
-			this._map = null;
 			var parent = this._container.parentNode;
 			if (parent) {
 				parent.removeChild(this._container);
@@ -397,6 +396,7 @@
 			for (var evt in events) {
 				this._map.off(evt, events[evt], this);
 			}
+			this._map = null;
 		};
 
 		pixiOverlayClass.destroy = function () {
